@@ -1,5 +1,5 @@
-var plotsBaseURL = './Score_files/'
-var imgbasename = 'DJF_3m'
+var plotsBaseURL = '../3-Var_modes/'
+var imgbasename = '3m.DJF'
 
 var origin = document.querySelector("#sel_origin");
 var stdate = document.querySelector("#sel_stdate");
@@ -16,27 +16,56 @@ origin.addEventListener('input',function(evento){
     origin_valor = evento.target.value
     console.log(origin_valor)
     var str_stdate = String(stdate_valor).padStart(2, '0');
+
+    if (varn_valor === "nao_box") {
+        var folder = "1-Box_calc/"
+      } else {
+        var folder = "2-EOFs_calc/"
+      }
     
     const plot2 = document.querySelector("#plot2") 
-    plot2.src = plotsBaseURL+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_'+varn_valor+'_'+imgbasename+'.png'
+    plot2.src = plotsBaseURL+folder+'data/plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_monthly.'+imgbasename+'.'+varn_valor+'.png'
 })
 stdate.addEventListener('input',function(evento){
     stdate_valor = evento.target.value
     console.log(stdate_valor)
     var str_stdate = String(stdate_valor).padStart(2, '0');
+
+    if (varn_valor === "nao_box") {
+        var folder = "1-Box_calc/"
+      } else {
+        var folder = "2-EOFs_calc/"
+      }
     
     const plot2 = document.querySelector("#plot2") 
-    plot2.src = plotsBaseURL+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_'+varn_valor+'_'+imgbasename+'.png'
+    plot2.src = plotsBaseURL+folder+'data/plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_monthly.'+imgbasename+'.'+varn_valor+'.png'
 })
 varn.addEventListener('input',function(evento){
     varn_valor = evento.target.value
     console.log(varn_valor)
     var str_stdate = String(stdate_valor).padStart(2, '0');
-    
+
+    if (varn_valor === "nao_box") {
+        var folder = "1-Box_calc/"
+        var eof_num = "1"
+      } else if (varn_valor === "nao_eof") {
+        var folder = "2-EOFs_calc/"
+        var eof_num = "1"
+    } else if (varn_valor === "ea") {
+        var folder = "2-EOFs_calc/"
+        var eof_num = "2"
+    } else if (varn_valor === "eawr") {
+        var folder = "2-EOFs_calc/"
+        var eof_num = "3"
+    } else if (varn_valor === "sca") {
+        var folder = "2-EOFs_calc/"
+        var eof_num = "4"
+    }
+
     const plot2 = document.querySelector("#plot2") 
-    plot2.src = plotsBaseURL+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_'+varn_valor+'_'+imgbasename+'.png'
+    plot2.src = plotsBaseURL+folder+'data/plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_monthly.'+imgbasename+'.'+varn_valor+'.png'
     const plot3 = document.querySelector("#plot3") 
-    plot3.src = plotsBaseURL+'ERA5_'+varn_valor+'.png'  
+    plot3.src = plotsBaseURL+'2-EOFs_calc/data/plots/ERA5_EOF'+eof_num+'.png'  
 })
 score.addEventListener('input',function(evento){
     score_valor = evento.target.value
@@ -44,5 +73,5 @@ score.addEventListener('input',function(evento){
     var str_stdate = String(stdate_valor).padStart(2, '0');
     
     const plot1 = document.querySelector("#plot1") 
-    plot1.src = plotsBaseURL+score_valor+'_'+imgbasename+'.png'
+    plot1.src = plotsBaseURL+'3-Common_plots/Score-card_'+score_valor+'_DJF_3m.png'
 })
