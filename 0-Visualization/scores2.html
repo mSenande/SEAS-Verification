@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Cambiar el titulo de la página web -->
+    <title>Seasonal forecasts verification</title>
+    <!-- Hoja de estilos -->
+    <link rel="preload" href="css/styles.css" as="style">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Poner un encabezado. Identificarlo con la clase titulo -->
+    <header>
+        <h1 class="titulo">Modes of variability</h1>
+    </header>
+
+    <!--Poner aquí la navegación. Identificarla con la clase navegación -->
+    <nav class="navegacion2">
+        <a href="index.html">Back</a>
+    </nav>
+
+    <main>
+        <!-- Poner una sección con la descripción de la empresa. Identificarlo con la clase descripcion -->
+        <section class="descripcion">
+            <!-- <h2>Descripción</h2> -->
+            <p>
+                Here we present an analysis of the skill of 8 seasonal forecasting systems in reproducing different the main European modes of variability during winter: the North Atlantic Oscillation (NAO), the East Atlantic (EA), the East Atlantic/Western Russia (EAWR) and the Scandinavian pattern (SCA). 
+            </p>
+            <p>
+                Different verification metrics were used, both deterministic and probabilistic, all defined as in the <a href="https://library.wmo.int/doc_num.php?explnum_id=4886" class="external-link" rel="nofollow">WMO forecast guidance</a>:
+                <ul>
+                    <li>
+                        Spearman's rank correlation coefficient (Correlation): measures the time statistical dependence between the forecast ensemble mean and the observations.
+                    </li>
+                    <li>
+                        Area under the relative (or 'receiver') operating characteristic (ROC) curve: this score measures the ability of the forecast to discriminate between the terciles of a given variable, with higher values indicating a good discrimination for a specific tercile. It is calculated for each category or tercile. 
+                    </li>
+                    <li>
+                        Ranked probability skill score (RPSS): this score is meant as a summary of the forecast ability for verifying all the considered categories. Positive values indicate a better tercile discrimination of the forecast than that of the climatology. 
+                    </li>
+                  </ul>                 
+            </p>    
+        </section>
+        <!-- <p><br></p> &nbsp; &nbsp; -->
+        <div id="selectors" class="seleccion">
+            <label for="sel_score">
+                Score: 
+            </label>
+            <select id="sel_score">
+                <option value="corr">
+                    Correlation
+                </option>
+                <option value="roc">
+                    ROC
+                </option>
+                <option value="rpss">
+                    RPSS
+                </option>
+            </select>
+        </div>
+        <img id="plot1" class="imagen" src="./Score_files/corr_DJF_3m.png"><br>
+        <!-- <p><br></p> &nbsp; &nbsp; -->
+        <div id="selectors"  class="seleccion">
+            <label for="sel_origin">
+                Forecast system: 
+            </label>
+            <select id="sel_origin">
+                <option value="ecmwf.s51">
+                    ECMWF SEAS5 (C3Sv5.1)
+                </option>
+                <option value="meteo_france.s8">
+                    MeteoFrance System8
+                </option>
+                <option value="ukmo.s602">
+                    UK MetOffice GloSea6 (system=602)
+                </option>
+                <option value="cmcc.s35">
+                    CMCC SPSv3.5
+                </option>
+                <option value="dwd.s21">
+                    DWD GCFS2.1
+                </option>
+                <option value="ncep.s2">
+                    NCEP CFSv2
+                </option>
+                <option value="jma.s3">
+                    JMA CPS3
+                </option>
+                <option value="eccc.s3">
+                    ECCC GEM5-NEMO
+                </option>
+            </select><br>
+            <label for="sel_stdate">
+                Nominal start date: 
+            </label>
+            <select id="sel_stdate">
+                <option value="9">
+                    September
+                </option>
+                <option value="10">
+                    October
+                </option>
+                <option value="11">
+                    November
+                </option>
+            </select>
+            <label for="sel_varn">
+                Variable: 
+            </label>
+            <select id="sel_varn">
+                <option value="nao_box">
+                    North Atlantic Oscillation (box)
+                </option>
+                <option value="nao_eof">
+                    North Atlantic Oscillation (eof)
+                </option>
+                <option value="ea">
+                    East Atlantic
+                </option>
+                <option value="eawr">
+                    East Atlantic - Western Russia
+                </option>
+                <option value="sca">
+                    Scandinavian Pattern
+                </option>
+            </select>
+        </div>
+        <img id="plot2" class="imagen" src="./Score_files/ecmwf_s51_stmonth09_nao_box_DJF_3m.png"><br>
+        <img id="plot3" class="imagen" src="./Score_files/ERA5_nao_box.png"><br>
+        <p><br></p> &nbsp; &nbsp;
+    </main>
+
+    <!-- Aqui va el footer. Identificar con class datos -->
+    <footer class="datos">
+        <p>Versión preliminar - Creado por Martín Senande Rivera</p>
+    </footer>
+    <script src="script2.js"></script>
+</body>
+
+</html>

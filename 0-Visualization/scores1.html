@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seasonal forecasts verification</title>
+    <link rel="preload" href="css/styles.css" as="style">
+    <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <h1 class="titulo">Surface variables</h1>
+    </header>
+
+    <nav class="navegacion2">
+        <a href="index.html">Back</a>
+    </nav>
+
+    <main>
+        <section class="descripcion">
+            <p>
+                Here we present an analysis of the skill of 8 seasonal forecasting systems in reproducing winter surface variables (air temperature, total precipitation and mean sea level pressure) in the Iberian Peninsula region. 
+            </p>
+            <p>
+                Different verification metrics were used, both deterministic and probabilistic, all defined as in the <a href="https://library.wmo.int/doc_num.php?explnum_id=4886" class="external-link" rel="nofollow">WMO forecast guidance</a>:
+                <ul>
+                    <li>
+                        Spearman's rank correlation coefficient (Correlation): measures the time statistical dependence between the forecast ensemble mean and the observations.
+                    </li>
+                    <li>
+                        Area under the relative (or 'receiver') operating characteristic (ROC) curve: this score measures the ability of the forecast to discriminate between the terciles of a given variable, with higher values indicating a good discrimination for a specific tercile. It is calculated for each category or tercile. 
+                    </li>
+                    <li>
+                        Ranked probability skill score (RPSS): this score is meant as a summary of the forecast ability for verifying all the considered categories. Positive values indicate a better tercile discrimination of the forecast than that of the climatology. 
+                    </li>
+                  </ul>                 
+            </p>    
+        </section>
+        <div id="selectors" class="seleccion">
+            <label for="sel_score">
+                Score: 
+            </label>
+            <select id="sel_score">
+                <option value="corr">
+                    Correlation
+                </option>
+                <option value="roc">
+                    ROC
+                </option>
+                <option value="rpss">
+                    RPSS
+                </option>
+            </select>
+        </div>
+        <img id="plot1" class="imagen" src="../1-Sf_variables/data/plots/Score-card_corr_DJF_3m.png"><br>
+        <div id="selectors"  class="seleccion">
+            <label for="sel_origin">
+                Forecast system: 
+            </label>
+            <select id="sel_origin">
+                <option value="ecmwf.s51">
+                    ECMWF SEAS5 (C3Sv5.1)
+                </option>
+                <option value="meteo_france.s8">
+                    MeteoFrance System8
+                </option>
+                <option value="ukmo.s602">
+                    UK MetOffice GloSea6 (system=602)
+                </option>
+                <option value="cmcc.s35">
+                    CMCC SPSv3.5
+                </option>
+                <option value="dwd.s21">
+                    DWD GCFS2.1
+                </option>
+                <option value="ncep.s2">
+                    NCEP CFSv2
+                </option>
+                <option value="jma.s3">
+                    JMA CPS3
+                </option>
+                <option value="eccc.s3">
+                    ECCC GEM5-NEMO
+                </option>
+            </select><br>
+            <label for="sel_stdate">
+                Nominal start date: 
+            </label>
+            <select id="sel_stdate">
+                <option value="9">
+                    September
+                </option>
+                <option value="10">
+                    October
+                </option>
+                <option value="11">
+                    November
+                </option>
+            </select>
+            <label for="sel_varn">
+                Variable: 
+            </label>
+            <select id="sel_varn">
+                <option value="t2m">
+                    2m temperature
+                </option>
+                <option value="tprate">
+                    Total precipitation
+                </option>
+                <option value="msl">
+                    Mean sea level pressure
+                </option>
+            </select>
+        </div>
+        <img id="plot2" class="imagen" src="../1-Sf_variables/data/plots/stmonth09/ecmwf_s51_stmonth09_hindcast1993-2016_monthly.3m.DJF.t2m.corr.png"><br>
+    </main>
+
+    <footer class="datos">
+        <p>Preliminary version - Created by Martín Senande Rivera</p>
+    </footer>
+    <script src="script1.js"></script>
+</body>
+
+</html>
