@@ -318,7 +318,7 @@ for aggr in ['1m','3m']:
                 probo=probo.drop('quantile')
             l_probs_obs.append(probo.assign_coords({'category':icat}))
             # Count the number of months between the threshold (1 or 0)
-            probc = np.logical_and(thiso>o_lo, thiso<=o_hi).sum('valid_time')/float(thiso.dims['valid_time'])        
+            probc = np.logical_and(thiso>o_lo, thiso<=o_hi).sum('valid_time')/float(thiso.valid_time.size)        
             if 'quantile' in probc:
                 probc=probc.drop('quantile')
             l_probs_clim.append(probc.assign_coords({'category':icat}))

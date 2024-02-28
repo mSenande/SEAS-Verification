@@ -1,6 +1,19 @@
+# %% [markdown]
+# # 2. Compute NAO
+
+# This script is used to compute the North Atlantic Oscillation (NAO) 
+# from monthly seasonal forescasts for the hindcast period.
+# 
+# NAO is calculated as the difference of the mean sea level pressure normalized anomaly 
+# between a north and a south lat-lon box region in the North Atlantic. 
+#
+# First we have to decide a forecast system (institution and system name) and a start month. 
+
+#%%
+print("2. Compute NAO") 
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -15,101 +28,31 @@ if len(sys.argv) > 2:
     startmonth = int(sys.argv[3])
 # If no variables were introduced, ask for them
 else:
-    # Which model
-    questions = [
-    inquirer.List('institution',
-                    message="Usar modelo del siguiente organismo",
-                    choices=['ECMWF','Météo France','Met Office','DWD','CMCC','NCEP','JMA','ECCC'],
-                ),
-    ]
-    answers = inquirer.prompt(questions)
-    institution = answers["institution"]
+    # Which model institution
+    institution = input("Usar modelo del siguiente organismo [ ECMWF , Météo France , Met Office , DWD , CMCC , NCEP , JMA , ECCC ]: ")
 
-    # Which version of each model
+    # Which model system
     if institution=='ECMWF':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 4','SEAS5','SEAS5.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 4 , SEAS5 , SEAS5.1 ]: ")
     elif institution=='Météo France':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 5','System 6','System 7','System 8'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 5 , System 6 , System 7 , System 8 ]: ")
     elif institution=='Met Office':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 12','System 13','System 14','System 15','GloSea6','GloSea6.1','GloSea6.2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 ]: ")
     elif institution=='DWD':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GCFS2.0','GCFS2.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GCFS2.0 , GCFS2.1 ]: ")
     elif institution=='CMCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['SPSv3.0','SPSv3.5'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ SPSv3.0 , SPSv3.5 ]: ")
     elif institution=='NCEP':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CFSv2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CFSv2 ]: ")
     elif institution=='JMA':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CPS2','CPS3'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CPS2 , CPS3 ]: ")
     elif institution=='ECCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GEM-NEMO','CanCM4i','GEM5-NEMO'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GEM-NEMO , CanCM4i , GEM5-NEMO ]: ")
     else:
         sys.exit()
 
     # Which start month
-    questions3 = [
-    inquirer.List('startmonth',
-                    message="Mes de inicialización",
-                    choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                ),
-    ]
-    answers3 = inquirer.prompt(questions3)
-    startmonth= np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["startmonth"])[0][0]+1
+    startmonth = int(input("Mes de inicialización (en número): "))
 
 # Dictionary to link full system names and simplier names
 full_name = {'ECMWF-System 4': ['ecmwf','4'],
@@ -173,17 +116,20 @@ elif not os.path.exists(hcst_fname):
     print('No se descargaron aún los datos de este modelo y sistema')
     sys.exit()
 
-### 2. Compute anomalies ###
-############################
-print("2. Compute anomalies")  
+# %% [markdown]
+# ## 2.1 Hindcast anomalies
+
+# We calculate the monthly and 3-months anomalies for the hindcast data.
+# 
+# We also obtain the normalized anomalies dividing by the standard deviation.
+
+#%%
+print("2.1 Hindcast anomalies")
 
 # For the re-shaping of time coordinates in xarray.Dataset we need to select the right one 
 #  -> burst mode ensembles (e.g. ECMWF SEAS5) use "time". This is the default option in this notebook
 #  -> lagged start ensembles (e.g. MetOffice GloSea6) use "indexing_time" (see CDS documentation about nominal start date)
 st_dim_name = 'time' if not config.get('isLagged',False) else 'indexing_time'
-
-### 2a. Hindcast anomalies ###
-print("2a. Hindcast anomalies")  
 
 # Reading hindcast data from file
 hcst = xr.open_dataset(hcst_fname,engine='cfgrib', backend_kwargs=dict(time_dims=('forecastMonth', st_dim_name)))
@@ -221,8 +167,14 @@ hcanom_norm_3m = (hcst_3m - hcmean_3m)/hcstd_3m
 hcanom_norm_3m = hcanom_norm_3m.assign_attrs(reference_period='{hcstarty}-{hcendy}'.format(**config))
 # NOTE: Hindacast data is already splitted into years and months, with years represented in start_date and months represented in forecastMonth
 
-### 2b. Observations anomalies ###
-print("2b. Observations anomalies")  
+# %% [markdown]
+# ## 2.2 Observations anomalies
+
+# We calculate the monthly and 3-months anomalies for the ERA5 data.
+# We also obtain the normalized anomalies dividing by the standard deviation.
+
+#%%
+print("2.2 Observations anomalies")  
 
 # Reading observations from file
 era5_1deg = xr.open_dataset(obs_fname, engine='cfgrib')
@@ -272,8 +224,16 @@ obanom_3m = obanom_3m.drop(['number', 'step', 'start_date', 'month'])
 obanom_norm = obanom_norm.drop(['number', 'step', 'start_date', 'month'])
 obanom_norm_3m = obanom_norm_3m.drop(['number', 'step', 'start_date', 'month'])
 
-### 2c. Hindcast NAO index ###
-print("2c. Hindcast NAO index")  
+# %% [markdown]
+# ## 2.3  Hindcast NAO index
+
+# We calculate the NAO as the difference of the mean sea level pressure normalized anomaly 
+# in a north (Iceland) and a south (Portugal) lat-lon box region.
+# 
+# To calculate the average of the mslp in each box, we have to weight each grid point by its area.
+
+#%%
+print("2.3 Hindcast NAO index")  
 
 # We defined the 2 boxes for the NAO calculation
 Iceland = {'lat': slice(90., 55.), 'lon': slice(-90., 60.)}
@@ -301,8 +261,13 @@ hcnao_station = msl_Portugal-msl_Iceland
 # 3m MSLP box difference 
 hcnao_station_3m = msl_Portugal_3m-msl_Iceland_3m
 
-### 2d. Observed NAO index ###
-print("2d. Obseved NAO index")
+# %% [markdown]
+# ## 2.4  Observed NAO index
+
+# The same as in the previous section but with the ERA5 data.
+
+#%%
+print("2.4 Obseved NAO index")
 
 # 1m MSLP weighted-average for northern box
 msl_Iceland = obanom_norm.msl.sel(lat=Iceland['lat'], lon=Iceland['lon'])

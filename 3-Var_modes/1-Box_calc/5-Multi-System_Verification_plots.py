@@ -1,6 +1,16 @@
+#%% [markdown]
+
+# # 5. Multi-system verification plots
+
+# This script is used to create time-series with the NAO forecast for all forecasting system in the same figure. 
+# 
+# First we have to decide a start month a month aggregation and a end month. 
+
+#%%
+print("5. Multi-system verification plots")  
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import numpy as np
 import locale
@@ -17,45 +27,19 @@ if len(sys.argv) > 2:
 # If no variables were introduced, ask for them
 else:
     # Which start month
-    questions1 = [
-    inquirer.List('startmonth',
-                    message="Mes de inicialización",
-                    choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                ),
-    ]
-    answers1 = inquirer.prompt(questions1)
-    startmonth= np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers1["startmonth"])[0][0]+1
+    startmonth = int(input("Mes de inicialización (en número): "))
 
     # Subset of plots to be produced
-    questions2 = [
-    inquirer.List('aggregation',
-                    message="Selecciona el tipo de agregación mensual",
-                    choices=['1m','3m'],
-                ),
-    ]
-    answers2 = inquirer.prompt(questions2)
-    aggr = answers2["aggregation"]
+    aggr = input("Selecciona el tipo de agregación mensual [ 1m , 3m ]: ")
 
     # Forecast month
     if aggr=='1m':
-        questions3 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                    ),
-        ]
-        answers3 = inquirer.prompt(questions3)
-        endmonth = np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["endmonth"])[0][0]+1
+        answ = input("Resultados para el mes [ Jan , Feb , Mar , Apr , May , Jun , Jul , Aug , Sep , Oct , Nov , Dec ]: ")
+        endmonth = np.where(np.array(['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']) == answ)[0][0]+1
         fcmonth = (endmonth-startmonth)+1 if (endmonth-startmonth)>=0 else (endmonth-startmonth)+13
     else:
-        questions3 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'],
-                    ),
-        ]
-        answers3 = inquirer.prompt(questions3)
-        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'])== answers3["endmonth"])[0][0]+1
+        answ = input("Resultados para el trimestre ['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND']: ")
+        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND']) == answ)[0][0]+1
         fcmonth = (endmonth-startmonth)+1 if (endmonth-startmonth)>=0 else (endmonth-startmonth)+13
 
 # Dictionary to link full system names and simplier names
@@ -89,9 +73,15 @@ full_name = {#'ECMWF-System 4': ['ecmwf','4'],
 DATADIR = './data'
 MODESDIR = './data/modes'
 
-### 5. Multi-system verification plots ###
-#######################################
-print("5. Multi-system verification plots")  
+#%% [markdown]
+
+# ## 5.1 Multi-system time series
+#
+# Boxplots represent the forecasted NAO, whereas background solid line represents observed values.
+#
+# A text box is included indicating the three verification scores (Spearman's rank correlation, area under Relative Operating Characteristic (ROC) curve and Ranked Probability Skill Score (RPSS)) 
+
+#%%
 
 # Common labels to be used in plot titles
 CATNAMES=['lower tercile', 'middle tercile', 'upper tercile']
@@ -197,11 +187,11 @@ for label in full_name:
     ax.set_xticklabels(years.values[::2])    
     ax.grid(True)
     # Scores
-    corr = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc').nao.sel(forecastMonth=fcmonth).values)
-    roc = [float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').nao.sel(category=0,forecastMonth=fcmonth).values),
-        float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').nao.sel(category=1,forecastMonth=fcmonth).values),
-        float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').nao.sel(category=2,forecastMonth=fcmonth).values)]
-    rpss = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc').nao.sel(forecastMonth=fcmonth).values)
+    corr = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc').sel(forecastMonth=fcmonth).nao.values)
+    roc = [float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').sel(category=0,forecastMonth=fcmonth).nao.values),
+        float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').sel(category=1,forecastMonth=fcmonth).nao.values),
+        float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').sel(category=2,forecastMonth=fcmonth).nao.values)]
+    rpss = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc').sel(forecastMonth=fcmonth).nao.values)
     textstr= '\n'.join((
         r'Correlation={:.2f}'.format(corr),
         r'ROC=[{:.2f},{:.2f},{:.2f}]'.format(roc[0],roc[1],roc[2]),
