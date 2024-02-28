@@ -1,6 +1,18 @@
+# %% [markdown]
+# # 1. Plot Score-cards
+
+# This script is used to represent score-cards, 
+# which show the verification score values for forecasts of a specific month or season with different systems and initializations 
+# 
+# The analised variables are: NAO (from the box method), NAO (from eofs), EA, EA/WR and SCA.
+#
+# First we have to decide a month aggregation, an end month and a verification score. 
+
+#%%
+print("1. Plot Score-cards")
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import numpy as np
 import locale
@@ -12,49 +24,24 @@ warnings.filterwarnings('ignore')
 
 # If variables are introduced from the command line, read them
 if len(sys.argv) > 2:
-    aggr = str(sys.argv[2])
-    endmonth = int(sys.argv[3])
-    score = str(sys.argv[4])
+    aggr = str(sys.argv[1])
+    endmonth = int(sys.argv[2])
+    score = str(sys.argv[3])
 # If no variables were introduced, ask for them
 else:
     # Subset of plots to be produced
-    questions2 = [
-    inquirer.List('aggregation',
-                    message="Selecciona el tipo de agregación mensual",
-                    choices=['1m','3m'],
-                ),
-    ]
-    answers2 = inquirer.prompt(questions2)
-    aggr = answers2["aggregation"]
+    aggr = input("Selecciona el tipo de agregación mensual [ 1m , 3m ]: ")
 
     # Forecast month
     if aggr=='1m':
-        questions3 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                    ),
-        ]
-        answers3 = inquirer.prompt(questions3)
-        endmonth = np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["endmonth"])[0][0]+1
+        answ = input("Resultados para el mes [ Jan , Feb , Mar , Apr , May , Jun , Jul , Aug , Sep , Oct , Nov , Dec ]: ")
+        endmonth = np.where(np.array(['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']) == answ)[0][0]+1
     else:
-        questions3 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'],
-                    ),
-        ]
-        answers3 = inquirer.prompt(questions3)
-        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'])== answers3["endmonth"])[0][0]+1
+        answ = input("Resultados para el trimestre [ NDJ , DJF , JFM , FMA , MAM , AMJ , MJJ , JJA , JAS , ASO , SON , OND ]: ")
+        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND']) == answ)[0][0]+1
 
-    questions4 = [
-    inquirer.List('score',
-        message="Usar el siguiente score",
-        choices=['bs','corr','roc','rocss','rps','rpss'],
-                ),
-        ]
-    answers4 = inquirer.prompt(questions4)
-    score = answers4["score"]
+    # Verification score
+    score = input("Usar el siguiente score [ bs , corr , roc , rocss , rps , rpss ]: ")
 
 # Dictionary to link full system names and simplier names
 full_name = {#'ECMWF-System 4': ['ecmwf','4'],
@@ -110,12 +97,14 @@ score_options = {'bs': [np.linspace(0.,0.5,11), plt.colormaps['YlGn'], 3, 'max',
                  'rpss': [np.linspace(-0.5,0.5,11), plt.colormaps['BrBG'], 1, 'both', 'Ranked Probability Skill Score (RPSS)'],
                 }
 
-### 5. Score-card plots ###
-###########################
-print("5. Score-card plots")  
+# %% [markdown]
+# ## 1.1 Array construction
 
-### 5a. Array construction ###
-print("5a. Array construction")  
+# First we construct an array with all results for the selected score, 
+# considering different initializations and forecasting systems.
+
+#%%
+print("1.1 Array construction")
 
 # Size of solution's array
 n_models = len(full_name)
@@ -191,8 +180,13 @@ for label in full_name:
         i+=1
     m+=1
 
-### 5b. Plots ###
-print(" 5b. Plots")  
+# %% [markdown]
+# ## 1.2 Score-cards
+
+# Then we represent the results.
+
+#%%
+print("1.2 Score-cards")
 
 # Prepare strings for titles
 locale.setlocale(locale.LC_ALL, 'en_GB')

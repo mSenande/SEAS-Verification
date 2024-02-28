@@ -1,6 +1,17 @@
+# %% [markdown]
+# # 1. Download data
+
+# This script is used to download monthly seasonal forescasts for the hindcast period, 
+# along with ERA5 data to compute verification scores.
+# 
+# We will download data with lead times between 1 and 6 months.
+# First we have to decide a forecast system (institution and system name) and a start month. 
+
+# %%
+print("1. Download data")  
+
 import os
 import sys
-import inquirer
 import cdsapi
 import numpy as np
 import warnings
@@ -13,101 +24,31 @@ if len(sys.argv) > 2:
     startmonth = int(sys.argv[3])
 # If no variables were introduced, ask for them
 else:
-    # Which model
-    questions = [
-    inquirer.List('institution',
-                    message="Usar modelo del siguiente organismo",
-                    choices=['ECMWF','Météo France','Met Office','DWD','CMCC','NCEP','JMA','ECCC'],
-                ),
-    ]
-    answers = inquirer.prompt(questions)
-    institution = answers["institution"]
+    # Which model institution
+    institution = input("Usar modelo del siguiente organismo [ ECMWF , Météo France , Met Office , DWD , CMCC , NCEP , JMA , ECCC ]: ")
 
-    # Which version of each model
+    # Which model system
     if institution=='ECMWF':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 4','SEAS5','SEAS5.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 4 , SEAS5 , SEAS5.1 ]: ")
     elif institution=='Météo France':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 5','System 6','System 7','System 8'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 5 , System 6 , System 7 , System 8 ]: ")
     elif institution=='Met Office':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 12','System 13','System 14','System 15','GloSea6','GloSea6.1','GloSea6.2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 ]: ")
     elif institution=='DWD':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GCFS2.0','GCFS2.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GCFS2.0 , GCFS2.1 ]: ")
     elif institution=='CMCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['SPSv3.0','SPSv3.5'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ SPSv3.0 , SPSv3.5 ]: ")
     elif institution=='NCEP':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CFSv2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CFSv2 ]: ")
     elif institution=='JMA':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CPS2','CPS3'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CPS2 , CPS3 ]: ")
     elif institution=='ECCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GEM-NEMO','CanCM4i','GEM5-NEMO'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GEM-NEMO , CanCM4i , GEM5-NEMO ]: ")
     else:
         sys.exit()
 
     # Which start month
-    questions3 = [
-    inquirer.List('startmonth',
-                    message="Mes de inicialización",
-                    choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                ),
-    ]
-    answers3 = inquirer.prompt(questions3)
-    startmonth= np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["startmonth"])[0][0]+1
+    startmonth = int(input("Mes de inicialización (en número): "))
 
 
 # Dictionary to link full system names and simplier names
@@ -142,9 +83,13 @@ origin_labels = {'institution': institution, 'name': name}
 model = full_name[institution+'-'+name][0]
 system = full_name[institution+'-'+name][1]
 
-### 1. Request data from the CDS using CDS API ###
-##################################################
-print("1. Request data from the CDS using CDS API")  
+# %% [markdown]
+# ## 1.1 Request data from the CDS using CDS API
+
+# Choose variables, create directories and define CDS configuration.
+
+# %%
+print("1.1 Request data from the CDS using CDS API")  
 
 # Here we save the configuration
 config = dict(
@@ -177,8 +122,14 @@ CDSAPI_URL = 'https://cds.climate.copernicus.eu/api/v2'
 CDSAPI_KEY = '7068:d94dcd65-20e0-4ee7-ab4a-15b4aa11b321'
 c = cdsapi.Client(url=CDSAPI_URL, key=CDSAPI_KEY)
 
-### 1a. Retrieve hindcast data ###
-print("1a. Retrieve hindcast data")
+# %% [markdown]
+# ## 1.2 Retrieve hindcast data
+
+# We will download all the selected start month and the corresponding forecast months (from 1 to 6)
+# for all the hindcast period (from 1993 to 2016).
+
+# %%
+print("1.2 Retrieve hindcast data")
 
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
@@ -205,8 +156,13 @@ if not os.path.exists(hcst_fname):
         },
         hcst_fname)
 
-### 1b. Retrieve observational data (ERA5) ###
-print("1b. Retrieve observational data (ERA5)")
+# %% [markdown]
+# ## 1.3 Retrieve observational data (ERA5)
+
+# Here we will download the same months as for the hindcast data.
+
+# %%
+print("1.3 Retrieve observational data (ERA5)")
 
 # File name for observations
 obs_fname = '{fpath}/era5_monthly_stmonth{start_month:02d}_{hcstarty}-{hcendy}.grib'.format(fpath=DATADIR,**config)
@@ -231,8 +187,13 @@ if not os.path.exists(obs_fname):
         },
         obs_fname)
 
-### 1c. Retrieve climaological data (ERA5) ###
-print("1c. Retrieve climaological data (ERA5)")
+# %% [markdown]
+# ## 1.4 Retrieve climaological data (ERA5)
+
+# Here we will download all the ERA5 period (1940-2020) to obtain the EOFs.
+
+# %%
+print("1.4 Retrieve climaological data (ERA5)")
 
 # File name for climatology
 clim_fname = f'{DATADIR}/era5_monthly.grib'

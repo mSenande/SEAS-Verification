@@ -1,6 +1,19 @@
+# %% [markdown]
+# # 2. Compute EOFs
+
+# This script is used to compute the EOFs and PCs 
+# from monthly seasonal forescasts for the hindcast period.
+# 
+# EOFs are calculted for ERA5 data with the Eof library.
+# Seasonal forecasts are then projected into these EOFs to obtain the PCs.
+#
+# First we have to decide a forecast system (institution and system name) and a start month. 
+
+#%%
+print("2. Compute EOFs") 
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -23,101 +36,31 @@ if len(sys.argv) > 2:
     startmonth = int(sys.argv[3])
 # If no variables were introduced, ask for them
 else:
-    # Which model
-    questions = [
-    inquirer.List('institution',
-                    message="Usar modelo del siguiente organismo",
-                    choices=['ECMWF','Météo France','Met Office','DWD','CMCC','NCEP','JMA','ECCC'],
-                ),
-    ]
-    answers = inquirer.prompt(questions)
-    institution = answers["institution"]
+    # Which model institution
+    institution = input("Usar modelo del siguiente organismo [ ECMWF , Météo France , Met Office , DWD , CMCC , NCEP , JMA , ECCC ]: ")
 
-    # Which version of each model
+    # Which model system
     if institution=='ECMWF':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 4','SEAS5','SEAS5.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 4 , SEAS5 , SEAS5.1 ]: ")
     elif institution=='Météo France':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 5','System 6','System 7','System 8'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 5 , System 6 , System 7 , System 8 ]: ")
     elif institution=='Met Office':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 12','System 13','System 14','System 15','GloSea6','GloSea6.1','GloSea6.2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 ]: ")
     elif institution=='DWD':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GCFS2.0','GCFS2.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GCFS2.0 , GCFS2.1 ]: ")
     elif institution=='CMCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['SPSv3.0','SPSv3.5'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ SPSv3.0 , SPSv3.5 ]: ")
     elif institution=='NCEP':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CFSv2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CFSv2 ]: ")
     elif institution=='JMA':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CPS2','CPS3'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CPS2 , CPS3 ]: ")
     elif institution=='ECCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GEM-NEMO','CanCM4i','GEM5-NEMO'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GEM-NEMO , CanCM4i , GEM5-NEMO ]: ")
     else:
         sys.exit()
 
     # Which start month
-    questions3 = [
-    inquirer.List('startmonth',
-                    message="Mes de inicialización",
-                    choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                ),
-    ]
-    answers3 = inquirer.prompt(questions3)
-    startmonth= np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["startmonth"])[0][0]+1
+    startmonth = int(input("Mes de inicialización (en número): "))
 
 # Dictionary to link full system names and simplier names
 full_name = {'ECMWF-System 4': ['ecmwf','4'],
@@ -191,18 +134,18 @@ elif not os.path.exists(clim_fname_sf):
     print('No se descargaron aún los datos de ERA5')
     sys.exit()
 
+# %% [markdown]
+# ## 2.1 Hindcast anomalies
 
-### 2. Compute anomalies ###
-############################
-print("2. Compute anomalies")  
+# We calculate the monthly and 3-months anomalies for the hindcast data.
+
+#%%
+print("2.1 Hindcast anomalies")
 
 # For the re-shaping of time coordinates in xarray.Dataset we need to select the right one 
 #  -> burst mode ensembles (e.g. ECMWF SEAS5) use "time". This is the default option in this notebook
 #  -> lagged start ensembles (e.g. MetOffice GloSea6) use "indexing_time" (see CDS documentation about nominal start date)
 st_dim_name = 'time' if not config.get('isLagged',False) else 'indexing_time'
-
-### 2a. Hindcast anomalies ###
-print("2a. Hindcast anomalies")  
 
 # Reading hindcast data from file
 hcst = xr.open_dataset(hcst_fname,engine='cfgrib', backend_kwargs=dict(time_dims=('forecastMonth', st_dim_name)))
@@ -233,8 +176,13 @@ hcmean_3m = hcst_3m.mean(['number','start_date'])
 hcanom_3m = hcst_3m - hcmean_3m
 hcanom_3m = hcanom_3m.assign_attrs(reference_period='{hcstarty}-{hcendy}'.format(**config))
 
-### 2b. Observations anomalies ###
-print("2b. Observations anomalies")  
+# %% [markdown]
+# ## 2.2 Observations anomalies
+
+# We calculate the monthly and 3-months anomalies for the ERA5 data.
+
+#%%
+print("2.2 Observations anomalies")  
 
 # Reading observations from file
 era5_1deg = xr.open_dataset(obs_fname, engine='cfgrib')
@@ -267,8 +215,13 @@ obanom_3m = era5_1deg_3m.groupby('valid_time.month') - obmean_3m
 obanom = obanom.drop(['number', 'step', 'start_date', 'isobaricInhPa', 'month'])
 obanom_3m = obanom_3m.drop(['number', 'step', 'start_date', 'isobaricInhPa', 'month'])
 
-### 2c. Climatology anomalies ###
-print("2c. Climatology anomalies")  
+# %% [markdown]
+# ## 2.3 Climatology anomalies
+
+# We calculate the monthly and 3-months anomalies for the ERA5 climatological data.
+
+#%%
+print("2.3 Climatology anomalies")  
 
 # Reading climatology from file
 era5_clim = xr.open_dataset(clim_fname, engine='cfgrib')
@@ -310,8 +263,16 @@ era5_clim_sf_3m = era5_clim_sf_3m.where(era5_clim_sf_3m.time.dt.month.isin(2), d
 clmean_sf = era5_clim_sf_3m.mean(dim='time')
 clanom_sf = era5_clim_sf_3m - clmean_sf
 
-### 2d. Climatological EOF and PCs ###
-print("2d. Climatological EOF and PCs")  
+
+# %% [markdown]
+# ## 2.4  Climatological EOF and PCs
+
+# We calculate the EOFs for the climatological ERA5 data, and their corresponding PCs.
+# 
+# To calculate the EOFs, we have to weight each grid point by its area.
+
+#%%
+print("2.4 Climatological EOF and PCs")  
 
 # Square-root of cosine of latitude weights are applied before the computation of EOFs
 coslat = np.cos(np.deg2rad(clanom.coords['lat'].values)).clip(0., 1.)
@@ -363,7 +324,6 @@ cbar_ax = fig.add_axes([0.05, 0.05, 0.9, 0.01])
 cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
 plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
 fig.savefig(f'{DATADIR}/plots/ERA5_EOFs.png')
-
 
 # PLOTs correlations
 names = ['NAO', 'EA', 'EAWR', 'SCA']
@@ -468,9 +428,14 @@ plt.xlim(1, 15)
 plt.ylim([0, 0.6])
 plt.savefig(f'{DATADIR}/plots/ERA5_VAR.png')
 
+# %% [markdown]
+# ## 2.5  Hindcast PCs
 
-### 2e. Hindcast PCs ###
-print("2e. Hindcast PCs")  
+# We project the seasonal forecast data into the four main ERA5 EOFs, 
+# obtaining the main climate variability modes: NAO, EA, EA/WR and SCA.
+
+#%%
+print("2.5 Hindcast PCs")  
 
 print('- Computing PCs for 1m aggregation (hindcast)')
 number_of_eofs = 4
@@ -523,8 +488,13 @@ for n in hcanom_3m.number:
 hcpcs_3m = xr.concat(list1_hcpcs,dim='number').squeeze().drop('mode').assign_coords({'valid_time':hcanom_3m.valid_time})
 print("TIME: --- {} ---".format(dt.timedelta(seconds=(time.time() - TIME)))) 
 
-### 2f. Observed PCs ###
-print("2f. Observed PCs")  
+# %% [markdown]
+# ## 2.6  Observed PCs
+
+# The same as in the previous section but with the ERA5 data.
+
+#%%
+print("2.6 Obseved PCs")
 
 print('- Computing PCs for 1m aggregation (observation)')
 list1_obpcs = list()

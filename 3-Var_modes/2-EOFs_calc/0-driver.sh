@@ -11,6 +11,7 @@ do
     python -u 2-Compute_EOFs.py "$institution" "$name" $startmonth
     python -u 3-Postprocess.py "$institution" "$name" $startmonth
     python -u 4-Verification_plots.py "$institution" "$name" $startmonth "$aggr" $fcmonth
+    python -u 6-Bootstrap.py "$institution" "$name" $startmonth "$aggr" $fcmonth
 done < <(tail -n +2 models.csv)
 python -u 5-Multi-System_Verification_plots.py $startmonth "$aggr" $fcmonth 
 
