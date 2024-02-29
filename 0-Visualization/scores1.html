@@ -26,16 +26,42 @@
                 Different verification metrics were used, both deterministic and probabilistic, all defined as in the <a href="https://library.wmo.int/doc_num.php?explnum_id=4886" class="external-link" rel="nofollow">WMO forecast guidance</a>:
                 <ul>
                     <li>
-                        Spearman's rank correlation coefficient (Correlation): measures the time statistical dependence between the forecast ensemble mean and the observations.
+                        <i>Spearman's rank correlation coefficient (Correlation):</i> measures the time statistical dependence between the forecast ensemble mean and the observations.
                     </li>
                     <li>
-                        Area under the relative (or 'receiver') operating characteristic (ROC) curve: this score measures the ability of the forecast to discriminate between the terciles of a given variable, with higher values indicating a good discrimination for a specific tercile. It is calculated for each category or tercile. 
+                        <i>Area under the relative (or 'receiver') operating characteristic (ROC) curve:</i> this score measures the ability of the forecast to discriminate between the terciles of a given variable, with higher values indicating a good discrimination for a specific tercile. It is calculated for each category or tercile. 
                     </li>
                     <li>
-                        Ranked probability skill score (RPSS): this score is meant as a summary of the forecast ability for verifying all the considered categories. Positive values indicate a better tercile discrimination of the forecast than that of the climatology. 
+                        <i>Ranked probability skill score (RPSS):</i> this score is meant as a summary of the forecast ability for verifying all the considered categories. Positive values indicate a better tercile discrimination of the forecast than that of the climatology. 
                     </li>
-                  </ul>                 
-            </p>    
+                </ul>                 
+            </p>
+            <p>
+                Variables definition:
+                <ul>
+                    <li>
+                        <b>t2m (IP)</b>: 2m air temperature in the Iberian Peninsula [9.5&deg;W-3.5&deg;E and 36&deg;N-44&deg;N].
+                    </li>
+                    <li>
+                        <b>t2m (CI):</b> 2m air temperature in the Canary Islands region [18.5&deg;W-13&deg;W and 27.5&deg;N-29.5&deg;N].
+                    </li>
+                    <li>
+                        <b>tp (IP):</b> total precipitation in the Iberian Peninsula [9.5&deg;W-3.5&deg;E and 36&deg;N-44&deg;N].
+                    </li>
+                    <li>
+                        <b>tp (CI):</b> total precipitation in the Canary Islands region [18.5&deg;W-13&deg;W and 27.5&deg;N-29.5&deg;N].
+                    </li>
+                    <li>
+                        <b>msl:</b> mean sea level pressure in the [30&deg;W-5&deg;E and 20&deg;N-50&deg;N] region.
+                    </li>
+                </ul>                 
+            </p>     
+            <h4>
+                Score-card 
+            </h4>
+            <p>
+                Verification score values of different variables (x-axis), forecasting systems (y-axis left) and initializations (y-axis right).
+            </p>
         </section>
         <div id="selectors" class="seleccion">
             <label for="sel_score">
@@ -54,6 +80,11 @@
             </select>
         </div>
         <img id="plot1" class="imagen" src="../1-Sf_variables/data/plots/Score-card_corr_DJF_3m.png"><br>
+        <section class="descripcion">
+            <h4>
+                Verification maps 
+            </h4>
+        </section>       
         <div id="selectors"  class="seleccion">
             <label for="sel_origin">
                 Forecast system: 

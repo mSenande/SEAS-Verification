@@ -42,7 +42,7 @@ h1, h2, h3 {
 .descripcion {
     width: 70%;
     height: 100%;
-    padding: 5rem;
+    padding: 1rem;
     margin: auto;
     display: flex;
     flex-direction: column;

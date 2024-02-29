@@ -16,7 +16,6 @@
     <nav class="navegacion2">
         <a href="index.html">Back</a>
     </nav>
-
     <main>
         <section class="descripcion">
             <p>
@@ -26,16 +25,49 @@
                 Different verification metrics were used, both deterministic and probabilistic, all defined as in the <a href="https://library.wmo.int/doc_num.php?explnum_id=4886" class="external-link" rel="nofollow">WMO forecast guidance</a>:
                 <ul>
                     <li>
-                        Spearman's rank correlation coefficient (Correlation): measures the time statistical dependence between the forecast ensemble mean and the observations.
+                        <i>Spearman's rank correlation coefficient (Correlation):</i> measures the time statistical dependence between the forecast ensemble mean and the observations.
                     </li>
                     <li>
-                        Area under the relative (or 'receiver') operating characteristic (ROC) curve: this score measures the ability of the forecast to discriminate between the terciles of a given variable, with higher values indicating a good discrimination for a specific tercile. It is calculated for each category or tercile. 
+                        <i>Area under the relative (or 'receiver') operating characteristic (ROC) curve:</i> this score measures the ability of the forecast to discriminate between the terciles of a given variable, with higher values indicating a good discrimination for a specific tercile. It is calculated for each category or tercile. 
                     </li>
                     <li>
-                        Ranked probability skill score (RPSS): this score is meant as a summary of the forecast ability for verifying all the considered categories. Positive values indicate a better tercile discrimination of the forecast than that of the climatology. 
+                        <i>Ranked probability skill score (RPSS):</i> this score is meant as a summary of the forecast ability for verifying all the considered categories. Positive values indicate a better tercile discrimination of the forecast than that of the climatology. 
                     </li>
                   </ul>                 
-            </p>    
+            </p>
+            <p>
+                Variables definition:
+                <ul>
+                    <li>
+                        <b>NAO (box):</b> North Atlantic Oscillaion calculated as the difference between the normalized anomaly of sea level pressure between a South-Atlantic and a North-Atlantic lat-lon box. The methodology is based on Baker et al., 2018.
+                    </li>
+                    <li>
+                        <b>NAO (eof):</b> North Atlantic Oscillaion calculated with an Emprirical Orthogonal Function analysis. The methodology is based on Lledó et al., 2020.
+                    </li>
+                    <li>
+                        <b>EA:</b> East Atlantic calculated with EOFs.
+                    </li>
+                    <li>
+                        <b>EAWR:</b> East Atlantic / Western Russia calculated with EOFs.
+                    </li>
+                    <li>
+                        <b>SCA:</b> Scandinavian Pattern calculated with EOFs.
+                    </li>
+                </ul>
+            </p>     
+            <p>
+                Baker, L. H., Shaffrey, L. C., Sutton, R. T., Weisheimer, A., & Scaife, A. A. (2018). An intercomparison of skill and overconfidence/underconfidence of the wintertime North Atlantic Oscillation in multimodel seasonal forecasts. <i>Geophysical Research Letters</i>, 45(15), 7808-7817.
+            </p>
+            <p>
+                Lledó, L., Cionni, I., Torralba, V., Bretonniere, P. A., & Samso, M. (2020). Seasonal prediction of Euro-Atlantic teleconnections from multiple systems. <i>Environmental Research Letters</i>, 15(7), 074009.  
+            </p>     
+    
+            <h4>
+                Score-card 
+            </h4>
+            <p>
+                Verification score values of different variability modes (x-axis), forecasting systems (y-axis left) and initializations (y-axis right).
+            </p>     
         </section>
         <div id="selectors" class="seleccion">
             <label for="sel_score">
@@ -54,6 +86,20 @@
             </select>
         </div>
         <img id="plot1" class="imagen" src="../3-Var_modes/3-Common_plots/Score-card_corr_DJF_3m.png"><br>
+        <section class="descripcion">
+            <h4>
+                Verification time-series
+            </h4>
+            <p>
+                Forecasted (as boxplots) and observed values (as shading) of each variability mode, for the selected forecasting system and initialization.
+            </p>
+            <p>
+                The correlation of each variability mode with three different surface variables is also shown.
+            </p>     
+            <p>
+                The last figure shows a estimation of the uncertainty of each verification score (the one selected in the score-card selector), using a bootstrap methodology with 10,000 iterations.
+            </p>         
+        </section>
         <div id="selectors"  class="seleccion">
             <label for="sel_origin">
                 Forecast system: 
