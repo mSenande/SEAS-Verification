@@ -82,7 +82,10 @@ MODESDIR = './data/modes'
 # A text box is included indicating the three verification scores (Spearman's rank correlation, area under Relative Operating Characteristic (ROC) curve and Ranked Probability Skill Score (RPSS)) 
 
 #%%
-print("6.1 Multi-system time series")
+print("6.1 Multi-system time series")  
+
+# Common labels to be used in plot titles
+CATNAMES=['lower tercile', 'middle tercile', 'upper tercile']
 
 # Some predefined options to plot each score
 score_options = {'bs': [np.linspace(0.,0.5,11), plt.colormaps['YlGn'], 3, 'max', 'Brier Score (BS)'],
@@ -117,11 +120,11 @@ for label in full_name:
     )
 
     # Base name for hindcast
-    hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
+    hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily'.format(**config)
     # Read hindcast file
     hcnao_fname = f'{MODESDIR}/{hcst_bname}.{aggr}.NAO.nc'
     # Base name for observations
-    obs_bname = 'era5_monthly_stmonth{start_month:02d}_{hcstarty}-{hcendy}'.format(**config)
+    obs_bname = 'era5_daily_stmonth{start_month:02d}_{hcstarty}-{hcendy}'.format(**config)
     # Read observations file
     obnao_fname = f'{MODESDIR}/{obs_bname}.{aggr}.NAO.nc'
 
@@ -146,6 +149,7 @@ for label in full_name:
         sys.exit()
     elif not os.path.exists(hcnao_fname):
         print('No se calcularon aún los datos de este modelo y sistema')
+        m = m+1
         continue
 
     # Reading HCST data from file
