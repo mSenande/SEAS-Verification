@@ -71,7 +71,7 @@ full_name = {#'ECMWF-System 4': ['ecmwf','4'],
             }
 
 # Number of lead-times
-lts=3
+lts=4
 # List of initializations
 if aggr=='1m':
     initialization = {calendar.month_name[endmonth-(l+1) if endmonth-(l+1)>0 else endmonth-(l+1)+12]: [endmonth-(l+1) if endmonth-(l+1)>0 else endmonth-(l+1)+12, l+2] for l in reversed(range(lts))}
@@ -111,7 +111,7 @@ n_models = len(full_name)
 n_init = len(initialization)
 n_vars = len(VARNAMES)
 n_terciles = score_options[score][2]
-DATA = np.zeros([n_vars*n_terciles,n_models*n_init])
+DATA = np.zeros([n_vars*n_terciles,n_models*n_init])*np.nan
 
 m = 0
 # For each model
@@ -136,10 +136,20 @@ for label in full_name:
             score = score,
         )
         # Read files
-        fname1 = '../1-Box_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
-        fname2 = '../2-EOFs_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
-        score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
-        score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
+        if fcmonth>6:
+            fname1 = '../1-Box_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(**config)
+            fname2 = '../2-EOFs_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(**config)
+            try:
+                score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
+                score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
+            except:
+                i+=1
+                continue
+        else:
+            fname1 = '../1-Box_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
+            fname2 = '../2-EOFs_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
+            score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
+            score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
         
         # For each tercile
         for t in range(n_terciles):
@@ -246,9 +256,17 @@ plt.title(tit_line1, fontsize=14, loc='center')
 # Numbers inside box
 for y in range(DATA.shape[1]):
     for x in range(DATA.shape[0]):
-        plt.text(x + 0.5, y + 0.5, '%.2f' % DATA[x,y],
-                    horizontalalignment='center',
-                    verticalalignment='center',
+        if (DATA[x,y]>levels[-2]) | (DATA[x,y]<=levels[1]):
+            plt.text(x + 0.5, y + 0.5, '%.2f' % DATA[x,y],
+                        horizontalalignment='center',
+                        verticalalignment='center',
+                        color='w'
+                )
+        else:
+            plt.text(x + 0.5, y + 0.5, '%.2f' % DATA[x,y],
+                        horizontalalignment='center',
+                        verticalalignment='center',
+                        color='k'
                 )
         
 # Save figure

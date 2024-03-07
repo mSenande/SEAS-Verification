@@ -1,7 +1,7 @@
 # %% [markdown]
 # # 2. Compute EOFs
 
-# This script is used to compute the EOFs and PCs 
+# This script is used to compute the EOFs and PCs. 
 # from monthly seasonal forescasts for the hindcast period.
 # 
 # EOFs are calculted for ERA5 data with the Eof library.
@@ -263,7 +263,6 @@ era5_clim_sf_3m = era5_clim_sf_3m.where(era5_clim_sf_3m.time.dt.month.isin(2), d
 clmean_sf = era5_clim_sf_3m.mean(dim='time')
 clanom_sf = era5_clim_sf_3m - clmean_sf
 
-
 # %% [markdown]
 # ## 2.4  Climatological EOF and PCs
 
@@ -460,7 +459,7 @@ for n in hcanom.number:
     list2 = xr.concat(list2_hcpcs,dim='forecastMonth')                    
     list1_hcpcs.append(list2.assign_coords({'number':n}))
     nn+=1
-hcpcs = xr.concat(list1_hcpcs,dim='number').squeeze().drop('mode').assign_coords({'valid_time':hcanom.valid_time})
+hcpcs = xr.concat(list1_hcpcs,dim='number').assign_coords({'valid_time':hcanom.valid_time})
 print("TIME: --- {} ---".format(dt.timedelta(seconds=(time.time() - TIME)))) 
 
 print('- Computing PCs for 3m aggregation (hindcast)')
@@ -485,7 +484,7 @@ for n in hcanom_3m.number:
     list2 = xr.concat(list2_hcpcs,dim='forecastMonth')                    
     list1_hcpcs.append(list2.assign_coords({'number':n}))
     nn+=1
-hcpcs_3m = xr.concat(list1_hcpcs,dim='number').squeeze().drop('mode').assign_coords({'valid_time':hcanom_3m.valid_time})
+hcpcs_3m = xr.concat(list1_hcpcs,dim='number').assign_coords({'valid_time':hcanom_3m.valid_time})
 print("TIME: --- {} ---".format(dt.timedelta(seconds=(time.time() - TIME)))) 
 
 # %% [markdown]
@@ -504,7 +503,7 @@ for t in obanom.valid_time:
     # Project the z500hPa field in the EOF solver
     pcs = solver.projectField(obanom.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
-obpcs = xr.concat(list1_obpcs,dim='valid_time').squeeze().drop('mode')       
+obpcs = xr.concat(list1_obpcs,dim='valid_time')      
 
 print('- Computing PCs for 3m aggregation (observation)')
 list1_obpcs = list() 
@@ -514,7 +513,7 @@ for t in obanom_3m.valid_time:
     # Project the z500hPa field in the EOF solver
     pcs = solver.projectField(obanom_3m.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
-obpcs_3m = xr.concat(list1_obpcs,dim='valid_time').squeeze().drop('mode')                    
+obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                   
 
 # Saving NAO index to netCDF files
 hcpcs.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.1m.PCs.nc')

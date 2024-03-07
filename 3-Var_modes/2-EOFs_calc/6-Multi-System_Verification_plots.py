@@ -78,7 +78,7 @@ MODESDIR = './data/modes'
 
 # ## 6.1 Multi-system time series
 #
-# Boxplots represent the forecasted NAO, whereas background solid line represents observed values.
+# Boxplots represent the forecasted modes, whereas background solid line represents observed values.
 #
 # A text box is included indicating the three verification scores (Spearman's rank correlation, area under Relative Operating Characteristic (ROC) curve and Ranked Probability Skill Score (RPSS)) 
 

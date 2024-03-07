@@ -112,7 +112,6 @@ obs_bname = 'era5_monthly_stmonth{start_month:02d}_{hcstarty}-{hcendy}'.format(*
 obpcs_fname = f'{MODESDIR}/{obs_bname}.1m.PCs.nc'
 obpcs_3m_fname = f'{MODESDIR}/{obs_bname}.3m.PCs.nc'
 
-
 # Check if files exist
 if not os.path.exists(obpcs_fname) & os.path.exists(obpcs_3m_fname):
     print('No se calcularon aún las PCs de ERA5')
@@ -184,7 +183,7 @@ for aggr,h in [("1m",hcpcs), ("3m",hcpcs_3m)]:
 
 # %% [markdown]
 # ## 3.2 Compute deterministic scores
-        
+
 # Here we calculate the Spearman's rank correlation and thei p-values. 
 # 
 # This score is based on the ensemble mean, not on the probabilities for each tercile.
@@ -232,7 +231,7 @@ for aggr in ['1m','3m']:
 
 # %% [markdown]
 # ## 3.3 Compute probabilistic scores for tercile categories
-        
+
 # Here we calculate the probabilistic scores: area under Relative Operating Characteristic (ROC) curve, 
 # Relative Operating Characteristic Skill Score (ROCSS), Ranked Probability Score (RPS), Ranked Probability Skill Score (RPSS) and Brier Score (BS). 
 

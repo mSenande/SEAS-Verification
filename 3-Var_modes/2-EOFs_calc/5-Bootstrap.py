@@ -108,7 +108,8 @@ system = full_name[institution+'-'+name][1]
 
 # Here we save the configuration
 config = dict(
-    list_vars = ['mean_sea_level_pressure'],
+    list_vars = 'geopotential',
+    pressure_level = '500',
     hcstarty = 1993,
     hcendy = 2016,
     start_month = startmonth,

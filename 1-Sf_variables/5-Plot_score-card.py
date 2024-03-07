@@ -12,49 +12,24 @@ warnings.filterwarnings('ignore')
 
 # If variables are introduced from the command line, read them
 if len(sys.argv) > 2:
-    aggr = str(sys.argv[2])
-    endmonth = int(sys.argv[3])
-    score = str(sys.argv[4])
+    aggr = str(sys.argv[1])
+    endmonth = int(sys.argv[2])
+    score = str(sys.argv[3])
 # If no variables were introduced, ask for them
 else:
     # Subset of plots to be produced
-    questions2 = [
-    inquirer.List('aggregation',
-                    message="Selecciona el tipo de agregación mensual",
-                    choices=['1m','3m'],
-                ),
-    ]
-    answers2 = inquirer.prompt(questions2)
-    aggr = answers2["aggregation"]
+    aggr = input("Selecciona el tipo de agregación mensual [ 1m , 3m ]: ")
 
     # Forecast month
     if aggr=='1m':
-        questions3 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                    ),
-        ]
-        answers3 = inquirer.prompt(questions3)
-        endmonth = np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["endmonth"])[0][0]+1
+        answ = input("Resultados para el mes [ Jan , Feb , Mar , Apr , May , Jun , Jul , Aug , Sep , Oct , Nov , Dec ]: ")
+        endmonth = np.where(np.array(['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']) == answ)[0][0]+1
     else:
-        questions3 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'],
-                    ),
-        ]
-        answers3 = inquirer.prompt(questions3)
-        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'])== answers3["endmonth"])[0][0]+1
+        answ = input("Resultados para el trimestre [ NDJ , DJF , JFM , FMA , MAM , AMJ , MJJ , JJA , JAS , ASO , SON , OND ]: ")
+        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND']) == answ)[0][0]+1
 
-    questions4 = [
-    inquirer.List('score',
-        message="Usar el siguiente score",
-        choices=['bs','corr','roc','rocss','rps','rpss'],
-                ),
-        ]
-    answers4 = inquirer.prompt(questions4)
-    score = answers4["score"]
+    # Verification score
+    score = input("Usar el siguiente score [ bs , corr , roc , rocss , rps , rpss ]: ")
 
 # Dictionary to link full system names and simplier names
 full_name = {#'ECMWF-System 4': ['ecmwf','4'],

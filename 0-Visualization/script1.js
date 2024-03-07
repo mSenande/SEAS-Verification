@@ -7,7 +7,7 @@ var varn = document.querySelector("#sel_varn");
 var score = document.querySelector("#sel_score");
 
 var origin_valor = "ecmwf.s51"
-var stdate_valor = "09"
+var stdate_valor = "11"
 var varn_valor = "t2m"
 var score_valor = "corr"
 
