@@ -117,7 +117,7 @@ for directory in [DATADIR, SCOREDIR, PLOTSDIR]:
 
 # CDS configuration
 CDSAPI_URL = 'https://cds.climate.copernicus.eu/api/v2'
-CDSAPI_KEY = '7068:d94dcd65-20e0-4ee7-ab4a-15b4aa11b321'
+CDSAPI_KEY = input("CDS KEY: ")
 c = cdsapi.Client(url=CDSAPI_URL, key=CDSAPI_KEY)
 
 # %% [markdown]
