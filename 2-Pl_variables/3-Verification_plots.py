@@ -1,6 +1,15 @@
+# %% [markdown]
+# # 3. Visualize verification plots
+
+# This script is used to create verification score maps for pressure levels variables. 
+# 
+# First we have to decide a forecast system (institution and system name), a start month a month aggregation and a end month. 
+
+#%%
+print("3. Visualize verification plots")  
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import numpy as np
 import locale
@@ -20,132 +29,43 @@ if len(sys.argv) > 2:
     fcmonth = int(sys.argv[5])
 # If no variables were introduced, ask for them
 else:
-    # Which model
-    questions = [
-    inquirer.List('institution',
-                    message="Usar modelo del siguiente organismo",
-                    choices=['ECMWF','Météo France','Met Office','DWD','CMCC','NCEP','JMA','ECCC'],
-                ),
-    ]
-    answers = inquirer.prompt(questions)
-    institution = answers["institution"]
+    # Which model institution
+    institution = input("Usar modelo del siguiente organismo [ ECMWF , Météo France , Met Office , DWD , CMCC , NCEP , JMA , ECCC ]: ")
 
-    # Which version of each model
+    # Which model system
     if institution=='ECMWF':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 4','SEAS5','SEAS5.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 4 , SEAS5 , SEAS5.1 ]: ")
     elif institution=='Météo France':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 5','System 6','System 7','System 8'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 5 , System 6 , System 7 , System 8 ]: ")
     elif institution=='Met Office':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 12','System 13','System 14','System 15','GloSea6','GloSea6.1','GloSea6.2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 ]: ")
     elif institution=='DWD':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GCFS2.0','GCFS2.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GCFS2.0 , GCFS2.1 ]: ")
     elif institution=='CMCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['SPSv3.0','SPSv3.5'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ SPSv3.0 , SPSv3.5 ]: ")
     elif institution=='NCEP':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CFSv2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CFSv2 ]: ")
     elif institution=='JMA':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CPS2','CPS3'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CPS2 , CPS3 ]: ")
     elif institution=='ECCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GEM-NEMO','CanCM4i','GEM5-NEMO'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GEM-NEMO , CanCM4i , GEM5-NEMO ]: ")
     else:
         sys.exit()
 
     # Which start month
-    questions3 = [
-    inquirer.List('startmonth',
-                    message="Mes de inicialización",
-                    choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                ),
-    ]
-    answers3 = inquirer.prompt(questions3)
-    startmonth= np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["startmonth"])[0][0]+1
+    startmonth = int(input("Mes de inicialización (en número): "))
 
     # Subset of plots to be produced
-    questions4 = [
-    inquirer.List('aggregation',
-                    message="Selecciona el tipo de agregación mensual",
-                    choices=['1m','3m'],
-                ),
-    ]
-    answers4 = inquirer.prompt(questions4)
-    aggr = answers4["aggregation"]
+    aggr = input("Selecciona el tipo de agregación mensual [ 1m , 3m ]: ")
 
     # Forecast month
     if aggr=='1m':
-        questions5 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                    ),
-        ]
-        answers5 = inquirer.prompt(questions5)
-        endmonth = np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers5["endmonth"])[0][0]+1
+        answ = input("Resultados para el mes [ Jan , Feb , Mar , Apr , May , Jun , Jul , Aug , Sep , Oct , Nov , Dec ]: ")
+        endmonth = np.where(np.array(['Jan', 'Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']) == answ)[0][0]+1
         fcmonth = (endmonth-startmonth)+1 if (endmonth-startmonth)>=0 else (endmonth-startmonth)+13
     else:
-        questions5 = [
-        inquirer.List('endmonth',
-                        message="Mes de forecast",
-                        choices=['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'],
-                    ),
-        ]
-        answers5 = inquirer.prompt(questions5)
-        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND'])== answers5["endmonth"])[0][0]+1
+        answ = input("Resultados para el trimestre [ NDJ , DJF , JFM , FMA , MAM , AMJ , MJJ , JJA , JAS , ASO , SON , OND ]: ")
+        endmonth = np.where(np.array(['NDJ', 'DJF','JFM','FMA','MAM','AMJ','MJJ','JJA','JAS','ASO','SON','OND']) == answ)[0][0]+1
         fcmonth = (endmonth-startmonth)+1 if (endmonth-startmonth)>=0 else (endmonth-startmonth)+13
 
 # Dictionary to link full system names and simplier names
@@ -196,10 +116,6 @@ DATADIR = './data'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 
-### 3. Visualize verification plots ###
-#######################################
-print("3. Visualize verification plots")  
-
 # Common labels to be used in plot titles
 VARNAMES = {
     'z' : 'gepotential height',
@@ -238,8 +154,14 @@ elif aggr=='3m':
 else:
     raise BaseException(f'Unexpected aggregation {aggr}')
 
-### 3a. Correlation ###
-print("3a. Correlation")  
+#%% [markdown]
+
+# ## 3.1 Correlation
+#
+# Map with the Spearman's rank correlation (stippling where significance below 95%).
+
+#%%
+print("3.1 Correlation")  
 
 # Check if file exists
 if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc'):
@@ -296,8 +218,14 @@ for press in PRESSURES:
         figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.corr.png'
         fig.savefig(figname,dpi=600,bbox_inches='tight')    
 
-### 3b. Area under Relative Operating Characteristic (ROC) curve ###
-print("3b. Area under Relative Operating Characteristic (ROC) curve")
+#%% [markdown]
+
+# ## 3.2 Area ROC
+#
+# Map with the Area under Relative Operating Characteristic (ROC) curve.
+
+#%%
+print("3.2 Area ROC")  
 
 # Check if file exists
 if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc'):
@@ -348,8 +276,15 @@ for press in PRESSURES:
         figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.roc.png'
         fig.savefig(figname,dpi=600,bbox_inches='tight')    
 
-### 3c. Ranked Probability Skill Score (RPSS) ###
-print("3c. Ranked Probability Skill Score (RPSS)")
+#%% [markdown]
+
+# ## 3.3 RPSS
+#
+# Map with the Ranked Probability Skill Score (RPSS).
+
+#%%
+print("3.3 RPSS")  
+
 
 # Check if file exists
 if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc'):

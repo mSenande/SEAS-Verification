@@ -1,6 +1,19 @@
+# %% [markdown]
+# # 2. Compute deterministic and probabilistic scores
+
+# This script is used to compute different verification scores 
+# for monthly seasonal forescasts of surface variables.
+# 
+# The computed scores are: Spearman's rank correlation, area under Relative Operating Characteristic (ROC) curve, 
+# Relative Operating Characteristic Skill Score (ROCSS), Ranked Probability Score (RPS), Ranked Probability Skill Score (RPSS) and Brier Score (BS).
+#
+# First we have to decide a forecast system (institution and system name) and a start month. 
+
+#%%
+print("2. Compute deterministic and probabilistic scores")
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -16,101 +29,31 @@ if len(sys.argv) > 2:
     startmonth = int(sys.argv[3])
 # If no variables were introduced, ask for them
 else:
-    # Which model
-    questions = [
-    inquirer.List('institution',
-                    message="Usar modelo del siguiente organismo",
-                    choices=['ECMWF','Météo France','Met Office','DWD','CMCC','NCEP','JMA','ECCC'],
-                ),
-    ]
-    answers = inquirer.prompt(questions)
-    institution = answers["institution"]
+    # Which model institution
+    institution = input("Usar modelo del siguiente organismo [ ECMWF , Météo France , Met Office , DWD , CMCC , NCEP , JMA , ECCC ]: ")
 
-    # Which version of each model
+    # Which model system
     if institution=='ECMWF':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 4','SEAS5','SEAS5.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 4 , SEAS5 , SEAS5.1 ]: ")
     elif institution=='Météo France':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 5','System 6','System 7','System 8'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 5 , System 6 , System 7 , System 8 ]: ")
     elif institution=='Met Office':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['System 12','System 13','System 14','System 15','GloSea6','GloSea6.1','GloSea6.2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 ]: ")
     elif institution=='DWD':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GCFS2.0','GCFS2.1'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GCFS2.0 , GCFS2.1 ]: ")
     elif institution=='CMCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['SPSv3.0','SPSv3.5'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ SPSv3.0 , SPSv3.5 ]: ")
     elif institution=='NCEP':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CFSv2'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CFSv2 ]: ")
     elif institution=='JMA':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['CPS2','CPS3'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ CPS2 , CPS3 ]: ")
     elif institution=='ECCC':
-        questions2 = [
-        inquirer.List('name',
-                        message="Sistema del modelo",
-                        choices=['GEM-NEMO','CanCM4i','GEM5-NEMO'],
-                    ),
-        ]
-        answers2 = inquirer.prompt(questions2)
-        name = answers2["name"]
+        name = input("Sistema del modelo [ GEM-NEMO , CanCM4i , GEM5-NEMO ]: ")
     else:
         sys.exit()
 
     # Which start month
-    questions3 = [
-    inquirer.List('startmonth',
-                    message="Mes de inicialización",
-                    choices=['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'],
-                ),
-    ]
-    answers3 = inquirer.prompt(questions3)
-    startmonth= np.where(np.array(['Enero', 'Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'])== answers3["startmonth"])[0][0]+1
+    startmonth = int(input("Mes de inicialización (en número): "))
 
 # Dictionary to link full system names and simplier names
 full_name = {'ECMWF-System 4': ['ecmwf','4'],
@@ -174,17 +117,18 @@ elif not os.path.exists(hcst_fname):
     print('No se descargaron aún los datos de este modelo y sistema')
     sys.exit()
 
-### 2. Compute deterministic and probabilistic scores ###
-#########################################################
-print("2. Compute deterministic and probabilistic scores")  
+# %% [markdown]
+# ## 2.1 Hindcast anomalies
+
+# We calculate the monthly and 3-months anomalies for the hindcast data.
+
+#%%
+print("2.1 Hindcast anomalies")
 
 # For the re-shaping of time coordinates in xarray.Dataset we need to select the right one 
 #  -> burst mode ensembles (e.g. ECMWF SEAS5) use "time". This is the default option in this notebook
 #  -> lagged start ensembles (e.g. MetOffice GloSea6) use "indexing_time" (see CDS documentation about nominal start date)
 st_dim_name = 'time' if not config.get('isLagged',False) else 'indexing_time'
-
-### 2a. Anomalies ###
-print("2a. Anomalies")  
 
 # Reading hindcast data from file
 hcst = xr.open_dataset(hcst_fname,engine='cfgrib', backend_kwargs=dict(time_dims=('forecastMonth', st_dim_name)))
@@ -215,8 +159,14 @@ hcmean_3m = hcst_3m.mean(['number','start_date'])
 anom_3m = hcst_3m - hcmean_3m
 anom_3m = anom_3m.assign_attrs(reference_period='{hcstarty}-{hcendy}'.format(**config))
 
-### 2b. Probabilities for tercile categories ###
-print("2b. Probabilities for tercile categories")
+# %% [markdown]
+# ## 2.2 Probabilities for tercile categories
+
+# Here we get the probabilities for tercile categories of the hindcast data, 
+# by counting the number of ensemble members found in each tercile.
+
+# %% 
+print("2.2 Probabilities for tercile categories")
 
 # We define a function to calculate the boundaries of forecast categories defined by quantiles
 def get_thresh(icat,quantiles,xrds,dims=['number','start_date']):
@@ -258,8 +208,13 @@ for aggr,h in [("1m",hcst), ("3m",hcst_3m)]:
     elif aggr=='3m':
         probs_3m = xr.concat(l_probs_hcst,dim='category')                    
 
-#### 2c. Read observations data ###
-print("2c. Read observations data")
+# %% [markdown]
+# ## 2.3 Read observation data
+
+# We read the monthly ERA5 data and obtain 3-months means.
+
+#%%
+print("2.3 Read observation data")  
 
 if 'total_precipitation' in config['list_vars']:
     # Total precipitation in ERA5 grib must be read separately because of time dimension
@@ -297,8 +252,15 @@ era5_1deg_3m = era5_1deg_3m.where(era5_1deg_3m.forecastMonth>=3)
 era5_1deg = era5_1deg.drop('forecastMonth')
 era5_1deg_3m = era5_1deg_3m.drop('forecastMonth')
 
-### 2d. Compute deterministic scores ###
-print("2d. Compute deterministic scores")
+# %% [markdown]
+# ## 2.4 Compute deterministic scores
+        
+# Here we calculate the Spearman's rank correlation and their p-values. 
+# 
+# This score is based on the ensemble mean, not on the probabilities for each tercile.
+
+# %% 
+print("2.4 Compute deterministic scores")
 
 # Loop over aggregations
 for aggr in ['1m','3m']:
@@ -337,8 +299,14 @@ for aggr in ['1m','3m']:
     corr.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc')
     corr_pval.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr_pval.nc')
 
-### 2e. Compute probabilistic scores for tercile categories ###
-print("2e. Compute probabilistic scores for tercile categories")
+# %% [markdown]
+# ## 2.5 Compute probabilistic scores for tercile categories
+        
+# Here we calculate the probabilistic scores: area under Relative Operating Characteristic (ROC) curve, 
+# Relative Operating Characteristic Skill Score (ROCSS), Ranked Probability Score (RPS), Ranked Probability Skill Score (RPSS) and Brier Score (BS). 
+
+# %% 
+print("2.5 Compute probabilistic scores for tercile categories")
 
 # Loop over aggregations
 for aggr in ['1m','3m']:

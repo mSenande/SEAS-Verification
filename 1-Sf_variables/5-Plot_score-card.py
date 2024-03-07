@@ -1,6 +1,18 @@
+# %% [markdown]
+# # 5. Plot Score-cards
+
+# This script is used to represent score-cards, 
+# which show the verification score values for forecasts of a specific month or season with different systems and initializations. 
+# 
+# The analised variables are: t2m (Iberian Peninsula), t2m (Canary Islands), tp (Iberian Peninsula), tp(Canary Islands) and mslp.
+#
+# First we have to decide a month aggregation, an end month and a verification score. 
+
+#%%
+print("5. Plot Score-cards")
+
 import os
 import sys
-import inquirer
 import xarray as xr
 import numpy as np
 import locale
@@ -71,9 +83,6 @@ VARNAMES = {
     't2m' : '2-metre temperature',
     'tprate'  : 'total precipitation',    
     'msl' : 'mean-sea-level pressure',
-#    'z' : 'gepotential height',
-#    'u' : 'u wind component',
-#    'v' : 'v wind component',
 }
 var_names = ['t2m (IP)', 't2m (CI)', 'tp (IP)', 'tp (CI)', 'msl']#, 'z-500hPa', 'u-500hPa', 'v-500hPa']
 
@@ -96,12 +105,14 @@ Canarias = {
     'lon': slice(-18.5,-13.),
 }
 
-### 5. Score-card plots ###
-###########################
-print("5. Score-card plots")  
+# %% [markdown]
+# ## 5.1 Array construction
 
-### 5a. Array construction ###
-print("5a. Array construction")  
+# First we construct an array with all results for the selected score, 
+# considering different initializations and forecasting systems.
+
+#%%
+print("5.1 Array construction")
 
 # Size of solution's array
 n_models = len(full_name)
@@ -184,8 +195,13 @@ for label in full_name:
         i+=1
     m+=1
 
-### 5b. Plots ###
-print(" 5b. Plots")  
+# %% [markdown]
+# ## 5.2 Score-cards
+
+# Then we represent the results.
+
+#%%
+print("5.2 Score-cards")
 
 # Prepare strings for titles
 locale.setlocale(locale.LC_ALL, 'en_GB')

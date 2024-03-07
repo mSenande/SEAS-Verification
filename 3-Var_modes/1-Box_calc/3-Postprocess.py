@@ -182,7 +182,7 @@ for aggr,h in [("1m",hcnao), ("3m",hcnao_3m)]:
 # %% [markdown]
 # ## 3.2 Compute deterministic scores
         
-# Here we calculate the Spearman's rank correlation and thei p-values. 
+# Here we calculate the Spearman's rank correlation and their p-values. 
 # 
 # This score is based on the ensemble mean, not on the probabilities for each tercile.
 
