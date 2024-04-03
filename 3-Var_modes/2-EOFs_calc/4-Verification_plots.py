@@ -37,7 +37,7 @@ else:
     elif institution=='Météo France':
         name = input("Sistema del modelo [ System 5 , System 6 , System 7 , System 8 ]: ")
     elif institution=='Met Office':
-        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 ]: ")
+        name = input("Sistema del modelo [ System 12 , System 13 , System 14 , System 15 , GloSea6 , GloSea6.1 , GloSea6.2 , GloSea6.3 ]: ")
     elif institution=='DWD':
         name = input("Sistema del modelo [ GCFS2.0 , GCFS2.1 ]: ")
     elif institution=='CMCC':
@@ -82,6 +82,7 @@ full_name = {'ECMWF-System 4': ['ecmwf','4'],
              'Met Office-GloSea6': ['ukmo', '600'],
              'Met Office-GloSea6.1': ['ukmo', '601'],
              'Met Office-GloSea6.2': ['ukmo', '602'],
+             'Met Office-GloSea6.3': ['ukmo', '603'],
              'DWD-GCFS2.0': ['dwd', '2'],
              'DWD-GCFS2.1': ['dwd', '21'],
              'CMCC-SPSv3.0': ['cmcc', '3'],
