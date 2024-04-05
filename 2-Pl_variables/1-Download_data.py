@@ -103,9 +103,9 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/2-Pl_variables/data'
 SCOREDIR = DATADIR + '/scores'
-PLOTSDIR = DATADIR + f'/plots/stmonth{config["start_month"]:02d}'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Directory creation
 for directory in [DATADIR, SCOREDIR, PLOTSDIR]:
     # Check if the directory exists
@@ -117,9 +117,7 @@ for directory in [DATADIR, SCOREDIR, PLOTSDIR]:
             pass
 
 # CDS configuration
-CDSAPI_URL = 'https://cds.climate.copernicus.eu/api/v2'
-CDSAPI_KEY = input("CDS KEY: ")
-c = cdsapi.Client(url=CDSAPI_URL, key=CDSAPI_KEY)
+c = cdsapi.Client()
 
 # %% [markdown]
 # ## 1.2 Retrieve hindcast data

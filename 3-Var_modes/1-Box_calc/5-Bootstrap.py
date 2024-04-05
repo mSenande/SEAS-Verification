@@ -119,8 +119,10 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
-MODESDIR = './data/modes'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/1-Box_calc/data'
+MODESDIR = DATADIR + '/modes'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 # File name for hindcast
@@ -347,7 +349,7 @@ else:
 score = 'corr'
 tit_line = f'NAO (box) - Bootstrap: {score_options[score][4]}\n'+tit_line1_base+' - '+tit_line2
 score_values = pd.Series(corr.nao.values)
-score_ref = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth).nao.values)
+score_ref = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth).nao.values)
 fig = plt.figure(figsize=(6,6))
 ax1 = fig.add_subplot()
 # Pdfs 
@@ -377,14 +379,14 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 ax1.text(0.01, 0.99, textstr, transform=ax1.transAxes, fontsize=10,
         verticalalignment='top', bbox=props)      
 # Save figure
-figname = f'./{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.nao_box.{score}-bootstrap.png'
+figname = f'./{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.nao_box.{score}-bootstrap.png'
 fig.savefig(figname,dpi=600)  
 
 # RPSS
 score = 'rpss'
 tit_line = f'NAO (box) - Bootstrap: {score_options[score][4]}\n'+tit_line1_base+' - '+tit_line2
 score_values = pd.Series(rpss.nao.values)
-score_ref = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth).nao.values)
+score_ref = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth).nao.values)
 fig = plt.figure(figsize=(6,6))
 ax1 = fig.add_subplot()
 # Pdfs 
@@ -413,7 +415,7 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 ax1.text(0.01, 0.99, textstr, transform=ax1.transAxes, fontsize=10,
         verticalalignment='top', bbox=props)      
 # Save figure
-figname = f'./{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.nao_box.{score}-bootstrap.png'
+figname = f'./{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.nao_box.{score}-bootstrap.png'
 fig.savefig(figname,dpi=600)  
 
 # ROC
@@ -422,9 +424,9 @@ tit_line = f'NAO (box) - Bootstrap: \n{score_options[score][4]}\n'+tit_line1_bas
 score_values0 = pd.Series(roc.sel(category=0).nao.values)
 score_values1 = pd.Series(roc.sel(category=1).nao.values)
 score_values2 = pd.Series(roc.sel(category=2).nao.values)
-score_ref0 = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(category=0,forecastMonth=fcmonth).nao.values)
-score_ref1 = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(category=1,forecastMonth=fcmonth).nao.values)
-score_ref2 = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(category=2,forecastMonth=fcmonth).nao.values)
+score_ref0 = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(category=0,forecastMonth=fcmonth).nao.values)
+score_ref1 = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(category=1,forecastMonth=fcmonth).nao.values)
+score_ref2 = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(category=2,forecastMonth=fcmonth).nao.values)
 fig = plt.figure(figsize=(6,6))
 ax1 = fig.add_subplot()
 # Pdfs 
@@ -481,5 +483,5 @@ ax1.text(0.99, 0.99, textstr, transform=ax1.transAxes, fontsize=9,
         verticalalignment='top', horizontalalignment='right', bbox=props)      
 ax1.legend(fontsize=10, loc='center left')
 # Save figure
-figname = f'./{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.nao_box.{score}-bootstrap.png'
+figname = f'./{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.nao_box.{score}-bootstrap.png'
 fig.savefig(figname,dpi=600)  

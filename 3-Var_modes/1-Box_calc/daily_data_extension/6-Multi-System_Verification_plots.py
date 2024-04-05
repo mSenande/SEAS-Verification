@@ -71,8 +71,10 @@ full_name = {#'ECMWF-System 4': ['ecmwf','4'],
             }
 
 # Directory selection
-DATADIR = './data'
-MODESDIR = './data/modes'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/1-Box_calc/daily_data_extension/data'
+MODESDIR = DATADIR + '/modes'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = './plots'
 
 #%% [markdown]
 
@@ -188,11 +190,11 @@ for label in full_name:
     ax.set_xticklabels(years.values[::2])    
     ax.grid(True)
     # Scores
-    corr = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc').sel(forecastMonth=fcmonth).nao.values)
-    roc = [float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').sel(category=0,forecastMonth=fcmonth).nao.values),
-        float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').sel(category=1,forecastMonth=fcmonth).nao.values),
-        float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc').sel(category=2,forecastMonth=fcmonth).nao.values)]
-    rpss = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc').sel(forecastMonth=fcmonth).nao.values)
+    corr = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr.nc').sel(forecastMonth=fcmonth).nao.values)
+    roc = [float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.roc.nc').sel(category=0,forecastMonth=fcmonth).nao.values),
+        float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.roc.nc').sel(category=1,forecastMonth=fcmonth).nao.values),
+        float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.roc.nc').sel(category=2,forecastMonth=fcmonth).nao.values)]
+    rpss = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.rpss.nc').sel(forecastMonth=fcmonth).nao.values)
     textstr= '\n'.join((
         r'Correlation={:.2f}'.format(corr),
         r'ROC=[{:.2f},{:.2f},{:.2f}]'.format(roc[0],roc[1],roc[2]),
@@ -205,6 +207,6 @@ for label in full_name:
     m = m+1
 fig.suptitle(f'NAO (box) - Forecasts (boxplots) and observations (shading)\n'+tit_line2, fontsize=16)
 plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.25, wspace=0.15)
-figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/All_models_stmonth{config["start_month"]:02d}_hindcast{config["hcstarty"]}-{config["hcendy"]}_monthly.{aggr}.{"".join(validmonths)}.nao_box.png'
+figname = f'{PLOTSDIR}/stmonth{config["start_month"]:02d}/All_models_stmonth{config["start_month"]:02d}_hindcast{config["hcstarty"]}-{config["hcendy"]}_monthly.{aggr}.{"".join(validmonths)}.nao_box.png'
 fig.savefig(figname,dpi=600)  
 

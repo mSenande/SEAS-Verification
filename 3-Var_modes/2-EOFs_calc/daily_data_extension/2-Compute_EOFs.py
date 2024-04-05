@@ -108,7 +108,10 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/2-EOFs_calc/daily_data_extension/data'
+MODESDIR = DATADIR + '/modes'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily'.format(**config)
 # Base name for observations
@@ -456,7 +459,7 @@ for t in obanom_3m.valid_time:
 obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                  
 
 # Saving NAO index to netCDF files
-hcpcs.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.1m.PCs.nc')
-hcpcs_3m.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.3m.PCs.nc')
-obpcs.to_netcdf(f'{DATADIR}/modes/{obs_bname}.1m.PCs.nc')
-obpcs_3m.to_netcdf(f'{DATADIR}/modes/{obs_bname}.3m.PCs.nc')
+hcpcs.to_netcdf(f'{MODESDIR}/{hcst_bname}.1m.PCs.nc')
+hcpcs_3m.to_netcdf(f'{MODESDIR}/{hcst_bname}.3m.PCs.nc')
+obpcs.to_netcdf(f'{MODESDIR}/{obs_bname}.1m.PCs.nc')
+obpcs_3m.to_netcdf(f'{MODESDIR}/{obs_bname}.3m.PCs.nc')

@@ -113,7 +113,9 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/2-Pl_variables/data'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 
@@ -165,16 +167,16 @@ else:
 print("3.1 Correlation")  
 
 # Check if file exists
-if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc'):
+if not os.path.exists(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr.nc'):
     print('No se crearon los coeficientes de correlación')
     sys.exit()
-elif not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr_pval.nc'):
+elif not os.path.exists(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr_pval.nc'):
     print('No se crearon los p-valores')
     sys.exit()
 
 # Read the data files
-corr = xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc')
-corr_pval = xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr_pval.nc')
+corr = xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr.nc')
+corr_pval = xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr_pval.nc')
 
 # For each pressure level
 for press in PRESSURES:
@@ -216,7 +218,7 @@ for press in PRESSURES:
         ax.contourf(thiscorrpval[var].lon,thiscorrpval[var].lat,corrpvalvalues,levels=[0.05,np.inf],hatches=['...',None],colors='none')
     
         # Save figure
-        figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.corr.png'
+        figname = f'{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.corr.png'
         fig.savefig(figname,dpi=600,bbox_inches='tight')    
 
 #%% [markdown]
@@ -229,12 +231,12 @@ for press in PRESSURES:
 print("3.2 Area ROC")  
 
 # Check if file exists
-if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc'):
+if not os.path.exists(f'{SCOREDIR}/{hcst_bname}.{aggr}.roc.nc'):
     print('No se creó el archivo con el Area under Relative Operating Characteristic (ROC) curve')
     sys.exit()
 
 # Read the data file
-roc = xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc')
+roc = xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.roc.nc')
 
 # For each pressure level
 for press in PRESSURES:
@@ -274,7 +276,7 @@ for press in PRESSURES:
         fig.suptitle(tit_line1 + f' {press}  {VARNAMES[var]}\n' + tit_line2 ,fontsize=12)
         cbar_ax = fig.add_axes([0.07, 0.07, 0.9, 0.02])
         cb = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',label='ROC')
-        figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.roc.png'
+        figname = f'{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.roc.png'
         fig.savefig(figname,dpi=600,bbox_inches='tight')    
 
 #%% [markdown]
@@ -288,12 +290,12 @@ print("3.3 RPSS")
 
 
 # Check if file exists
-if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc'):
+if not os.path.exists(f'{SCOREDIR}/{hcst_bname}.{aggr}.rpss.nc'):
     print('No se creó el archivo con el Ranked Probability Skill Score (RPSS)')
     sys.exit()
 
 # Read the data file
-rpss = xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc')
+rpss = xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.rpss.nc')
 
 # For each pressure level
 for press in PRESSURES:
@@ -329,6 +331,6 @@ for press in PRESSURES:
         cb = fig.colorbar(cs, cax=cbar_ax, orientation='horizontal',label='RPSS')
 
         # Save figure
-        figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.rpss.png'
+        figname = f'{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{var}{press}.rpss.png'
         fig.savefig(figname,dpi=600,bbox_inches='tight')    
 

@@ -77,7 +77,9 @@ full_name = {#'ECMWF-System 4': ['ecmwf','4'],
             }
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/2-Pl_variables/data'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = './plots'
 
 # Common labels to be used in plot titles
 VARNAMES = {
@@ -148,13 +150,13 @@ for press in PRESSURES:
                     raise BaseException(f'Unexpected aggregation {aggr}')
             
                 # Check if file exists
-                if not os.path.exists(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc'):
+                if not os.path.exists(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc'):
                     print('No se creó el archivo con dicho score: ')
-                    print(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc')
+                    print(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc')
                     sys.exit()
 
                 # Read the data file
-                sc = xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc')
+                sc = xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc')
     
                 # Select forecast month
                 try:
@@ -187,7 +189,7 @@ for press in PRESSURES:
                 cs = plt.contourf(thissc[var].lon,thissc[var].lat,avalues,levels=score_options[score][0],cmap=score_options[score][1],extend=score_options[score][3])
                 # If score is corr, we also represent p-values
                 if score=='corr':
-                    corr_pval = xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}_pval.nc')
+                    corr_pval = xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}_pval.nc')
                     thiscorrpval = corr_pval.sel(forecastMonth=fcmonth)
                     corrpvalvalues = thiscorrpval[var].values
                     if corrpvalvalues.T.shape == (thiscorrpval[var].lat.size, thiscorrpval[var].lon.size):
@@ -205,10 +207,10 @@ for press in PRESSURES:
             # Add title
             if score_options[score][2]==3:
                 fig.suptitle(f'{score_options[score][4]} \n {press} {VARNAMES[var]}' + f' ({CATNAMES[icat]})\n' + tit_line2, fontsize=16)
-                figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/All_models_stmonth{config["start_month"]:02d}_hindcast{config["hcstarty"]}-{config["hcendy"]}_monthly.{aggr}.{"".join(validmonths)}.{var}{press}.{score}{str(icat)}.png'
+                figname = f'{PLOTSDIR}/stmonth{config["start_month"]:02d}/All_models_stmonth{config["start_month"]:02d}_hindcast{config["hcstarty"]}-{config["hcendy"]}_monthly.{aggr}.{"".join(validmonths)}.{var}{press}.{score}{str(icat)}.png'
             else:
                 fig.suptitle(f'{score_options[score][4]} \n {press} {VARNAMES[var]}\n' + tit_line2, fontsize=16)
-                figname = f'{DATADIR}/plots/stmonth{config["start_month"]:02d}/All_models_stmonth{config["start_month"]:02d}_hindcast{config["hcstarty"]}-{config["hcendy"]}_monthly.{aggr}.{"".join(validmonths)}.{var}{press}.{score}.png'
+                figname = f'{PLOTSDIR}/stmonth{config["start_month"]:02d}/All_models_stmonth{config["start_month"]:02d}_hindcast{config["hcstarty"]}-{config["hcendy"]}_monthly.{aggr}.{"".join(validmonths)}.{var}{press}.{score}.png'
             # Controlling subplot distances
             plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.3, wspace=0.07)
             # Save figure

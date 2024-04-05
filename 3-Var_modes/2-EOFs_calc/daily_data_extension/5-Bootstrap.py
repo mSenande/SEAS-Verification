@@ -120,8 +120,10 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
-MODESDIR = './data/modes'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/2-EOFs_calc/daily_data_extension/data'
+MODESDIR = DATADIR + '/modes'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily'.format(**config)
 # File name for hindcast
@@ -354,7 +356,7 @@ for m in range(4):
     score = 'corr'
     tit_line = f'{name_pcs[m]} - Bootstrap: {score_options[score][4]}\n'+tit_line1_base+' - '+tit_line2
     score_values = pd.Series(corr.pseudo_pcs.sel(mode=m).values)
-    score_ref = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
+    score_ref = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
     fig = plt.figure(figsize=(6,6))
     ax1 = fig.add_subplot()
     # Pdfs 
@@ -384,14 +386,14 @@ for m in range(4):
     ax1.text(0.01, 0.99, textstr, transform=ax1.transAxes, fontsize=10,
             verticalalignment='top', bbox=props)      
     # Save figure
-    figname = f'./{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{name_pcs2[m]}.{score}-bootstrap.png'
+    figname = f'./{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{name_pcs2[m]}.{score}-bootstrap.png'
     fig.savefig(figname,dpi=600)  
 
     # RPSS
     score = 'rpss'
     tit_line = f'{name_pcs[m]} - Bootstrap: {score_options[score][4]}\n'+tit_line1_base+' - '+tit_line2
     score_values = pd.Series(rpss.pseudo_pcs.sel(mode=m).values)
-    score_ref = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
+    score_ref = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
     fig = plt.figure(figsize=(6,6))
     ax1 = fig.add_subplot()
     # Pdfs 
@@ -420,7 +422,7 @@ for m in range(4):
     ax1.text(0.01, 0.99, textstr, transform=ax1.transAxes, fontsize=10,
             verticalalignment='top', bbox=props)      
     # Save figure
-    figname = f'./{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{name_pcs2[m]}.{score}-bootstrap.png'
+    figname = f'./{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{name_pcs2[m]}.{score}-bootstrap.png'
     fig.savefig(figname,dpi=600)  
 
     # ROC
@@ -429,9 +431,9 @@ for m in range(4):
     score_values0 = pd.Series(roc.sel(category=0,mode=m).pseudo_pcs.values)
     score_values1 = pd.Series(roc.sel(category=1,mode=m).pseudo_pcs.values)
     score_values2 = pd.Series(roc.sel(category=2,mode=m).pseudo_pcs.values)
-    score_ref0 = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(category=0,forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
-    score_ref1 = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(category=1,forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
-    score_ref2 = float(xr.open_dataset(f'{DATADIR}/scores/{hcst_bname}.{aggr}.{score}.nc').sel(category=2,forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
+    score_ref0 = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(category=0,forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
+    score_ref1 = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(category=1,forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
+    score_ref2 = float(xr.open_dataset(f'{SCOREDIR}/{hcst_bname}.{aggr}.{score}.nc').sel(category=2,forecastMonth=fcmonth,mode=m).pseudo_pcs.values)
     fig = plt.figure(figsize=(6,6))
     ax1 = fig.add_subplot()
     # Pdfs 
@@ -488,5 +490,5 @@ for m in range(4):
             verticalalignment='top', horizontalalignment='right', bbox=props)      
     ax1.legend(fontsize=10, loc='center left')
     # Save figure
-    figname = f'./{DATADIR}/plots/stmonth{config["start_month"]:02d}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{name_pcs2[m]}.{score}-bootstrap.png'
+    figname = f'./{PLOTSDIR}/{hcst_bname}.{aggr}.{"".join(validmonths)}.{name_pcs2[m]}.{score}-bootstrap.png'
     fig.savefig(figname,dpi=600)  

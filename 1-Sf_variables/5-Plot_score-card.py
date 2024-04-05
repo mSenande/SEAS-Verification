@@ -79,6 +79,8 @@ if aggr=='1m':
 elif aggr=='3m': 
     initialization = {calendar.month_name[endmonth-(l+3) if endmonth-(l+3)>0 else endmonth-(l+3)+12]: [endmonth-(l+3) if endmonth-(l+3)>0 else endmonth-(l+3)+12, l+4] for l in reversed(range(lts))}
 
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/1-Sf_variables/data'
+
 # Common labels to be used in plot titles
 VARNAMES = {
     't2m' : '2-metre temperature',
@@ -145,7 +147,7 @@ for label in full_name:
             score = score,
         )
         # Read file
-        fname = './data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
+        fname = '{datadir}/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
         scorefile = xr.open_dataset(fname).sel(forecastMonth=fcmonth)
 
         v = 0
@@ -217,7 +219,7 @@ elif aggr=='3m':
 else:
     raise BaseException(f'Unexpected aggregation {aggr}')
 tit_line1 = 'Surface variables - '+tit_line2+f'\n{score_options[score][4]}'
-figname = f'./data/plots/Score-card_{score}_{"".join(validmonths)}_{aggr}.png'
+figname = f'./plots/Score-card_{score}_{"".join(validmonths)}_{aggr}.png'
 
 # Create figure
 fig = plt.figure(figsize=(10,8))
@@ -277,5 +279,5 @@ if n_terciles>1:
 else:
     df = df.set_axis(var_names, axis=1)
 df = df.set_axis(pd.MultiIndex.from_product([[label for label in full_name],[init for init in initialization]]), axis=0)
-csvname = f'./data/plots/Score-card_{score}_{"".join(validmonths)}_{aggr}.csv'
+csvname = f'./plots/Score-card_{score}_{"".join(validmonths)}_{aggr}.csv'
 df.to_csv(csvname)

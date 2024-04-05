@@ -79,6 +79,8 @@ if aggr=='1m':
 elif aggr=='3m': 
     initialization = {calendar.month_name[endmonth-(l+3) if endmonth-(l+3)>0 else endmonth-(l+3)+12]: [endmonth-(l+3) if endmonth-(l+3)>0 else endmonth-(l+3)+12, l+4] for l in reversed(range(lts))}
 
+# Directory selection
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes'
 
 # Common labels to be used in plot titles
 VARNAMES = {
@@ -138,8 +140,8 @@ for label in full_name:
         )
         # Read files
         if fcmonth>6:
-            fname1 = '../1-Box_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(**config)
-            fname2 = '../2-EOFs_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(**config)
+            fname1 = '{datadir}/1-Box_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
+            fname2 = '{datadir}/2-EOFs_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
             try:
                 score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
                 score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
@@ -147,8 +149,8 @@ for label in full_name:
                 i+=1
                 continue
         else:
-            fname1 = '../1-Box_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
-            fname2 = '../2-EOFs_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(**config)
+            fname1 = '{datadir}/1-Box_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
+            fname2 = '{datadir}/2-EOFs_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
             score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
             score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
         

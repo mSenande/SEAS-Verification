@@ -100,7 +100,9 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/1-Sf_variables/data'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 # File name for hindcast
@@ -297,8 +299,8 @@ for aggr in ['1m','3m']:
     corr_pval=xr.concat(l_corr_pval,dim='forecastMonth')
     
     # Saving to netCDF file correlation   
-    corr.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr.nc')
-    corr_pval.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.corr_pval.nc')
+    corr.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr.nc')
+    corr_pval.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.corr_pval.nc')
 
 # %% [markdown]
 # ## 2.5 Compute probabilistic scores for tercile categories
@@ -393,9 +395,9 @@ for aggr in ['1m','3m']:
     bs=xr.concat(l_bs,dim='forecastMonth')
 
     # Save scores to netcdf
-    rps.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rps.nc')
-    rpss.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rpss.nc')
-    bs.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.bs.nc')
-    roc.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.roc.nc')
-    rocss.to_netcdf(f'{DATADIR}/scores/{hcst_bname}.{aggr}.rocss.nc')
+    rps.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.rps.nc')
+    rpss.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.rpss.nc')
+    bs.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.bs.nc')
+    roc.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.roc.nc')
+    rocss.to_netcdf(f'{SCOREDIR}/{hcst_bname}.{aggr}.rocss.nc')
 

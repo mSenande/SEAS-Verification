@@ -99,7 +99,10 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/1-Box_calc/data'
+MODESDIR = DATADIR + '/modes'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 # File name for hindcast
@@ -297,7 +300,7 @@ hcnao = hcnao_station.rename("nao")
 hcnao_3m = hcnao_station_3m.rename("nao")
 obnao = obnao_station.rename("nao")
 obnao_3m = obnao_station_3m.rename("nao")
-hcnao.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.1m.NAO.nc')
-hcnao_3m.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.3m.NAO.nc')
-obnao.to_netcdf(f'{DATADIR}/modes/{obs_bname}.1m.NAO.nc')
-obnao_3m.to_netcdf(f'{DATADIR}/modes/{obs_bname}.3m.NAO.nc')
+hcnao.to_netcdf(f'{MODESDIR}/{hcst_bname}.1m.NAO.nc')
+hcnao_3m.to_netcdf(f'{MODESDIR}/{hcst_bname}.3m.NAO.nc')
+obnao.to_netcdf(f'{MODESDIR}/{obs_bname}.1m.NAO.nc')
+obnao_3m.to_netcdf(f'{MODESDIR}/{obs_bname}.3m.NAO.nc')

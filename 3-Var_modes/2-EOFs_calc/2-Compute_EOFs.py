@@ -108,7 +108,10 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = './data'
+DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/2-EOFs_calc/data'
+MODESDIR = DATADIR + '/modes'
+SCOREDIR = DATADIR + '/scores'
+PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 # File name for hindcast
@@ -323,7 +326,7 @@ ax4.gridlines()
 cbar_ax = fig.add_axes([0.05, 0.05, 0.9, 0.01])
 cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
 plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
-fig.savefig(f'{DATADIR}/plots/ERA5_EOFs.png')
+fig.savefig(f'{PLOTSDIR}/ERA5_EOFs.png')
 
 # PLOTs correlations
 names = ['NAO', 'EA', 'EAWR', 'SCA']
@@ -362,7 +365,7 @@ for modo in range(4):
     cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
     #fig.suptitle('', fontsize=16)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
-    fig.savefig(f'{DATADIR}/plots/ERA5_EOF{str(modo+1)}.png')
+    fig.savefig(f'{PLOTSDIR}/ERA5_EOF{str(modo+1)}.png')
 
 # PLOTs PCs
 fig = plt.figure(figsize=(8,12))
@@ -413,7 +416,7 @@ plt.title('$SCA_{EOF}$', loc='left')
 ax4.grid(True,axis='x')
 plt.ylim([-3., 3.])
 plt.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.05, hspace=0.25, wspace=0.1)
-fig.savefig(f'{DATADIR}/plots/ERA5_PCs.png')
+fig.savefig(f'{PLOTSDIR}/ERA5_PCs.png')
 
 plt.figure(figsize=(8, 4))
 eof_num = range(1, 16)
@@ -426,7 +429,7 @@ plt.xlabel('EOF #')
 plt.ylabel('Variance Fraction')
 plt.xlim(1, 15)
 plt.ylim([0, 0.6])
-plt.savefig(f'{DATADIR}/plots/ERA5_VAR.png')
+plt.savefig(f'{PLOTSDIR}/ERA5_VAR.png')
 
 # %% [markdown]
 # ## 2.5  Hindcast PCs
@@ -517,7 +520,7 @@ for t in obanom_3m.valid_time:
 obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                   
 
 # Saving NAO index to netCDF files
-hcpcs.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.1m.PCs.nc')
-hcpcs_3m.to_netcdf(f'{DATADIR}/modes/{hcst_bname}.3m.PCs.nc')
-obpcs.to_netcdf(f'{DATADIR}/modes/{obs_bname}.1m.PCs.nc')
-obpcs_3m.to_netcdf(f'{DATADIR}/modes/{obs_bname}.3m.PCs.nc')
+hcpcs.to_netcdf(f'{MODESDIR}/{hcst_bname}.1m.PCs.nc')
+hcpcs_3m.to_netcdf(f'{MODESDIR}/{hcst_bname}.3m.PCs.nc')
+obpcs.to_netcdf(f'{MODESDIR}/{obs_bname}.1m.PCs.nc')
+obpcs_3m.to_netcdf(f'{MODESDIR}/{obs_bname}.3m.PCs.nc')
