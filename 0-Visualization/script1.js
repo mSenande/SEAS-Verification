@@ -1,4 +1,4 @@
-var plotsBaseURL = '../1-Sf_variables/data/plots/'
+var plotsBaseURL = '../1-Sf_variables/plots/'
 var imgbasename = '3m.DJF'
 
 var origin = document.querySelector("#sel_origin");

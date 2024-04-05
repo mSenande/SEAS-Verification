@@ -24,10 +24,10 @@ origin.addEventListener('input',function(evento){
     }
 
     if (str_stdate === "08") {
-        var folder2 = "daily_data_extension/data/"
+        var folder2 = "daily_data_extension/"
         var freq = "daily"
       } else {
-        var folder2 = "data/"
+        var folder2 = ""
         var freq = "monthly"
     }
 
@@ -48,10 +48,10 @@ stdate.addEventListener('input',function(evento){
     }
 
     if (str_stdate === "08") {
-        var folder2 = "daily_data_extension/data/"
+        var folder2 = "daily_data_extension/"
         var freq = "daily"
       } else {
-        var folder2 = "data/"
+        var folder2 = ""
         var freq = "monthly"
     }
       
@@ -83,17 +83,17 @@ varn.addEventListener('input',function(evento){
     }
 
     if (str_stdate === "08") {
-        var folder2 = "daily_data_extension/data/"
+        var folder2 = "daily_data_extension/"
         var freq = "daily"
       } else {
-        var folder2 = "data/"
+        var folder2 = ""
         var freq = "monthly"
     }
 
     const plot2 = document.querySelector("#plot2") 
     plot2.src = plotsBaseURL+folder+folder2+'plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_'+freq+'.'+imgbasename+'.'+varn_valor+'.png'
     const plot3 = document.querySelector("#plot3") 
-    plot3.src = plotsBaseURL+'2-EOFs_calc/data/plots/ERA5_EOF'+eof_num+'.png'  
+    plot3.src = plotsBaseURL+'2-EOFs_calc/plots/ERA5_EOF'+eof_num+'.png'  
     const plot4 = document.querySelector("#plot4") 
     plot4.src = plotsBaseURL+folder+folder2+'plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_'+freq+'.'+imgbasename+'.'+varn_valor+'.'+score_valor+'-bootstrap.png'
 })
@@ -109,10 +109,10 @@ score.addEventListener('input',function(evento){
     }
 
     if (str_stdate === "08") {
-        var folder2 = "daily_data_extension/data/"
+        var folder2 = "daily_data_extension/"
         var freq = "daily"
       } else {
-        var folder2 = "data/"
+        var folder2 = ""
         var freq = "monthly"
     }
 
