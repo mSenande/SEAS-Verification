@@ -13,6 +13,7 @@ print("1. Plot Score-cards")
 
 import os
 import sys
+from dotenv import load_dotenv
 import xarray as xr
 import numpy as np
 import locale
@@ -80,7 +81,8 @@ elif aggr=='3m':
     initialization = {calendar.month_name[endmonth-(l+3) if endmonth-(l+3)>0 else endmonth-(l+3)+12]: [endmonth-(l+3) if endmonth-(l+3)>0 else endmonth-(l+3)+12, l+4] for l in reversed(range(lts))}
 
 # Directory selection
-DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes'
+load_dotenv() # Data is saved in a path defined in file .env
+DATADIR = os.getenv('DATA_DIR')
 
 # Common labels to be used in plot titles
 VARNAMES = {

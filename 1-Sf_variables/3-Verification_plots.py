@@ -10,6 +10,7 @@ print("3. Visualize verification plots")
 
 import os
 import sys
+from dotenv import load_dotenv
 import xarray as xr
 import numpy as np
 import locale
@@ -112,7 +113,8 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = os.environ['MAS'] + '/Seasonal_Verification/1-Sf_variables/data'
+load_dotenv() # Data is saved in a path defined in file .env
+DATADIR = os.getenv('DATA_DIR')
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast

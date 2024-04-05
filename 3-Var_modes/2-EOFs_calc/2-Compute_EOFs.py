@@ -14,6 +14,7 @@ print("2. Compute EOFs")
 
 import os
 import sys
+from dotenv import load_dotenv
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -108,7 +109,8 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/2-EOFs_calc/data'
+load_dotenv() # Data is saved in a path defined in file .env
+DATADIR = os.getenv('DATA_FOLDER')
 MODESDIR = DATADIR + '/modes'
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'

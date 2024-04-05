@@ -14,6 +14,7 @@ print("2. Compute deterministic and probabilistic scores")
 
 import os
 import sys
+from dotenv import load_dotenv
 import xarray as xr
 import pandas as pd
 import numpy as np
@@ -101,7 +102,8 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = os.environ['MAS'] + '/Seasonal_Verification/2-Pl_variables/data'
+load_dotenv() # Data is saved in a path defined in file .env
+DATADIR = os.getenv('DATA_DIR')
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
 # Base name for hindcast

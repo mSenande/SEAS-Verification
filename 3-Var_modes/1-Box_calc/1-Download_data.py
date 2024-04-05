@@ -12,6 +12,7 @@ print("1. Download data")
 
 import os
 import sys
+from dotenv import load_dotenv
 import cdsapi
 import numpy as np
 import warnings
@@ -102,7 +103,8 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/1-Box_calc/data'
+load_dotenv() # Data is saved in a path defined in file .env
+DATADIR = os.getenv('DATA_DIR')
 MODESDIR = DATADIR + '/modes'
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'

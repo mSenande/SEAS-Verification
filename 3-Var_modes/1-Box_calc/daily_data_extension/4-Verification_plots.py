@@ -10,6 +10,7 @@ print("4. Visualize verification plots")
 
 import os
 import sys
+from dotenv import load_dotenv
 import xarray as xr
 import numpy as np
 import locale
@@ -110,7 +111,8 @@ config = dict(
 )
 
 # Directory selection
-DATADIR = os.environ['MAS'] + '/Seasonal_Verification/3-Var_modes/1-Box_calc/daily_data_extension/data'
+load_dotenv() # Data is saved in a path defined in file .env
+DATADIR = os.getenv('DATA_DIR')
 MODESDIR = DATADIR + '/modes'
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
