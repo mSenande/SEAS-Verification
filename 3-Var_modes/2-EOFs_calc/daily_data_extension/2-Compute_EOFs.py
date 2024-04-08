@@ -1,5 +1,5 @@
 # %% [markdown]
-# # 2. Compute NAO
+# # 2. Compute EOFs
 
 # This script is used to compute the EOFs and PCs .
 # from daily (or subdaily) seasonal forescasts for the hindcast period.
@@ -20,6 +20,8 @@ import pandas as pd
 import numpy as np
 from eofs.xarray import Eof
 import xskillscore as xs
+import locale
+import calendar
 from dateutil.relativedelta import relativedelta
 import time
 import datetime as dt
@@ -313,21 +315,28 @@ print("2.4 Climatology anomalies")
 
 # Reading climatology from file
 era5_clim = xr.open_dataset(clim_fname, engine='cfgrib')
-
+# Obtain desired months
+d_months = [(config['start_month']+leadm)%12 if config['start_month']+leadm!=12 else 12 for leadm in range(6)]
 # Subsetting data
 era5_clim = era5_clim.where(
           #era5_clim.time.dt.year > 1978, # &
-          era5_clim.time.dt.month.isin([12, 1, 2]),
-          drop = True).sel(time=slice('1941-11-01','2020-11-01')).rename({'latitude':'lat','longitude':'lon'})
+          era5_clim.time.dt.month.isin(d_months),
+          drop = True).sel(time=slice('1941-{:02d}-01'.format(d_months[0]),'2020-{:02d}-01'.format(d_months[-1]))).rename({'latitude':'lat','longitude':'lon'})
+# Assign 'forecastMonth' coordinate values
+fcmonths = [mm+1 if mm>=0 else mm+13 for mm in [t.month - config['start_month'] for t in pd.to_datetime(era5_clim.valid_time.values)] ]
+era5_clim = era5_clim.assign_coords(forecastMonth=('time',fcmonths))
 
 # Calculate 3-month aggregations
 era5_clim_3m = era5_clim.rolling(time=3).mean()
 # rolling() assigns the label to the end of the N month period, so the first N-1 elements have NaN and can be dropped
-era5_clim_3m = era5_clim_3m.where(era5_clim_3m.time.dt.month.isin(2), drop=True).drop(['number', 'step', 'valid_time'])
+era5_clim_3m = era5_clim_3m.where(era5_clim_3m.forecastMonth>=3, drop=True).drop(['number', 'step'])
 
-# Calculate anomalies
-clmean = era5_clim_3m.mean(dim='time')
-clanom = era5_clim_3m - clmean
+# Calculate 1m anomalies
+clmean = era5_clim.groupby('time.month').mean('time')
+clanom = era5_clim.groupby('time.month') - clmean
+# Calculate 3m anomalies
+clmean_3m = era5_clim_3m.groupby('time.month').mean('time')
+clanom_3m = era5_clim_3m.groupby('time.month') - clmean_3m
 
 # Reading surface climatology from file
 era5_clim_sf_notp = xr.open_dataset(clim_fname_sf, engine='cfgrib', backend_kwargs={'filter_by_keys': {'step': 0}})
@@ -335,21 +344,28 @@ era5_clim_sf_tp = xr.open_dataset(clim_fname_sf, engine='cfgrib', backend_kwargs
 era5_clim_sf_tp = era5_clim_sf_tp.assign_coords(time=era5_clim_sf_notp.time.values)
 era5_clim_sf = xr.merge([era5_clim_sf_notp,era5_clim_sf_tp],compat='override')
 del era5_clim_sf_notp, era5_clim_sf_tp
-
+# Obtain desired months
+d_months = [(config['start_month']+leadm)%12 if config['start_month']+leadm!=12 else 12 for leadm in range(6)]
 # Subsetting data
 era5_clim_sf = era5_clim_sf.where(
-          #era5_clim_sf.time.dt.year > 1978, # &
-          era5_clim_sf.time.dt.month.isin([12, 1, 2]),
-          drop = True).sel(time=slice('1941-11-01','2020-11-01')).rename({'latitude':'lat','longitude':'lon'})
+          #era5_clim.time.dt.year > 1978, # &
+          era5_clim_sf.time.dt.month.isin(d_months),
+          drop = True).sel(time=slice('1941-{:02d}-01'.format(d_months[0]),'2020-{:02d}-01'.format(d_months[-1]))).rename({'latitude':'lat','longitude':'lon'})
+# Assign 'forecastMonth' coordinate values
+fcmonths = [mm+1 if mm>=0 else mm+13 for mm in [t.month - config['start_month'] for t in pd.to_datetime(era5_clim_sf.valid_time.values)] ]
+era5_clim_sf = era5_clim_sf.assign_coords(forecastMonth=('time',fcmonths))
 
 # Calculate 3-month aggregations
 era5_clim_sf_3m = era5_clim_sf.rolling(time=3).mean()
 # rolling() assigns the label to the end of the N month period, so the first N-1 elements have NaN and can be dropped
-era5_clim_sf_3m = era5_clim_sf_3m.where(era5_clim_sf_3m.time.dt.month.isin(2), drop=True).drop(['number', 'step', 'valid_time'])
+era5_clim_sf_3m = era5_clim_sf_3m.where(era5_clim_sf_3m.forecastMonth>=3, drop=True).drop(['number', 'step'])
 
-# Calculate anomalies
-clmean_sf = era5_clim_sf_3m.mean(dim='time')
-clanom_sf = era5_clim_sf_3m - clmean_sf
+# Calculate 1m anomalies
+clmean_sf = era5_clim_sf.groupby('time.month').mean('time')
+clanom_sf = era5_clim_sf.groupby('time.month') - clmean_sf
+# Calculate 3m anomalies
+clmean_sf_3m = era5_clim_sf_3m.groupby('time.month').mean('time')
+clanom_sf_3m = era5_clim_sf_3m.groupby('time.month') - clmean_sf_3m
 
 # %% [markdown]
 # ## 2.5  Climatological EOF and PCs
@@ -364,13 +380,29 @@ print("2.5 Climatological EOF and PCs")
 # Square-root of cosine of latitude weights are applied before the computation of EOFs
 coslat = np.cos(np.deg2rad(clanom.coords['lat'].values)).clip(0., 1.)
 wgts = np.sqrt(coslat)[..., np.newaxis]
-# Create an EOF solver to do the EOF analysis.
-solver = Eof(clanom.z, weights=wgts)
-# Retrieve the leading EOF, expressed as the correlation between the leading PC time series and the input SLP anomalies at each grid point
-eofs_corr = solver.eofsAsCorrelation(neofs=4)
-explained_var = solver.varianceFraction()
-# Extracting the principal component
-pcs = solver.pcs(npcs=4, pcscaling=1)
+list_solvers = {"forecastMonth":[],"EOFs":[]} 
+# For each forecast month
+for f in hcanom.forecastMonth:
+    # Create an EOF solver to do the EOF analysis.
+    cl_array = clanom.where(clanom.forecastMonth==f, drop=True)
+    solver = Eof(cl_array.z, weights=wgts)
+    list_solvers["forecastMonth"].append(int(f.values))
+    list_solvers["EOFs"].append(solver)
+
+list_solvers_3m = {"forecastMonth":[],"EOFs":[]} 
+# For each forecast month
+for f in hcanom_3m.forecastMonth:
+    # Create an EOF solver to do the EOF analysis.
+    cl_array = clanom_3m.where(clanom_3m.forecastMonth==f, drop=True)
+    cl_array_sf = clanom_sf_3m.where(clanom_sf_3m.forecastMonth==f, drop=True)
+    solver = Eof(cl_array.z, weights=wgts)
+    list_solvers_3m["forecastMonth"].append(int(f.values))
+    list_solvers_3m["EOFs"].append(solver)
+    # Retrieve the leading EOF, expressed as the correlation between the leading PC time series and the input SLP anomalies at each grid point
+    eofs_corr = solver.eofsAsCorrelation(neofs=4)
+    explained_var = solver.varianceFraction()
+    # Extracting the principal component
+    pcs = solver.pcs(npcs=4, pcscaling=1)
 
 # %% [markdown]
 # ## 2.6  Hindcast PCs
@@ -397,6 +429,7 @@ for n in hcanom.number:
         # For each year
         for t in hcanom.start_date:
             # Project the z500hPa field in the EOF solver
+            solver = list_solvers["EOFs"][list_solvers["forecastMonth"]==int(f.values)]
             pcs = solver.projectField(hcanom.sel(number=n,forecastMonth=f,start_date=t).z, neofs=number_of_eofs, eofscaling=1)
             list3_hcpcs.append(pcs.assign_coords({'start_date':t}))
         list3 = xr.concat(list3_hcpcs,dim='start_date')                    
@@ -422,6 +455,7 @@ for n in hcanom_3m.number:
         # For each year
         for t in hcanom_3m.start_date:
             # Project the z500hPa field in the EOF solver
+            solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"]==int(f.values)]
             pcs = solver.projectField(hcanom_3m.sel(number=n,forecastMonth=f,start_date=t).z, neofs=number_of_eofs, eofscaling=1)
             list3_hcpcs.append(pcs.assign_coords({'start_date':t}))
         list3 = xr.concat(list3_hcpcs,dim='start_date')                    
@@ -446,6 +480,7 @@ obanom = obanom.load()
 # For each year
 for t in obanom.valid_time:
     # Project the z500hPa field in the EOF solver
+    solver = list_solvers["EOFs"][list_solvers["forecastMonth"]==int(f.values)]
     pcs = solver.projectField(obanom.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs = xr.concat(list1_obpcs,dim='valid_time')
@@ -456,6 +491,7 @@ obanom_3m = obanom_3m.load()
 # For each year
 for t in obanom_3m.valid_time:
     # Project the z500hPa field in the EOF solver
+    solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"]==int(f.values)]
     pcs = solver.projectField(obanom_3m.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                  

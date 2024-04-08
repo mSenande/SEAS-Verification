@@ -20,6 +20,8 @@ import pandas as pd
 import numpy as np
 from eofs.xarray import Eof
 import xskillscore as xs
+import locale
+import calendar
 from dateutil.relativedelta import relativedelta
 import time
 import datetime as dt
@@ -110,7 +112,7 @@ config = dict(
 
 # Directory selection
 load_dotenv() # Data is saved in a path defined in file .env
-DATADIR = os.getenv('DATA_FOLDER')
+DATADIR = os.getenv('DATA_DIR')
 MODESDIR = DATADIR + '/modes'
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
@@ -231,21 +233,28 @@ print("2.3 Climatology anomalies")
 
 # Reading climatology from file
 era5_clim = xr.open_dataset(clim_fname, engine='cfgrib')
-
+# Obtain desired months
+d_months = [(config['start_month']+leadm)%12 if config['start_month']+leadm!=12 else 12 for leadm in range(6)]
 # Subsetting data
 era5_clim = era5_clim.where(
           #era5_clim.time.dt.year > 1978, # &
-          era5_clim.time.dt.month.isin([12, 1, 2]),
-          drop = True).sel(time=slice('1941-11-01','2020-11-01')).rename({'latitude':'lat','longitude':'lon'})
+          era5_clim.time.dt.month.isin(d_months),
+          drop = True).sel(time=slice('1941-{:02d}-01'.format(d_months[0]),'2020-{:02d}-01'.format(d_months[-1]))).rename({'latitude':'lat','longitude':'lon'})
+# Assign 'forecastMonth' coordinate values
+fcmonths = [mm+1 if mm>=0 else mm+13 for mm in [t.month - config['start_month'] for t in pd.to_datetime(era5_clim.valid_time.values)] ]
+era5_clim = era5_clim.assign_coords(forecastMonth=('time',fcmonths))
 
 # Calculate 3-month aggregations
 era5_clim_3m = era5_clim.rolling(time=3).mean()
 # rolling() assigns the label to the end of the N month period, so the first N-1 elements have NaN and can be dropped
-era5_clim_3m = era5_clim_3m.where(era5_clim_3m.time.dt.month.isin(2), drop=True).drop(['number', 'step', 'valid_time'])
+era5_clim_3m = era5_clim_3m.where(era5_clim_3m.forecastMonth>=3, drop=True).drop(['number', 'step'])
 
-# Calculate anomalies
-clmean = era5_clim_3m.mean(dim='time')
-clanom = era5_clim_3m - clmean
+# Calculate 1m anomalies
+clmean = era5_clim.groupby('time.month').mean('time')
+clanom = era5_clim.groupby('time.month') - clmean
+# Calculate 3m anomalies
+clmean_3m = era5_clim_3m.groupby('time.month').mean('time')
+clanom_3m = era5_clim_3m.groupby('time.month') - clmean_3m
 
 # Reading surface climatology from file
 era5_clim_sf_notp = xr.open_dataset(clim_fname_sf, engine='cfgrib', backend_kwargs={'filter_by_keys': {'step': 0}})
@@ -253,21 +262,29 @@ era5_clim_sf_tp = xr.open_dataset(clim_fname_sf, engine='cfgrib', backend_kwargs
 era5_clim_sf_tp = era5_clim_sf_tp.assign_coords(time=era5_clim_sf_notp.time.values)
 era5_clim_sf = xr.merge([era5_clim_sf_notp,era5_clim_sf_tp],compat='override')
 del era5_clim_sf_notp, era5_clim_sf_tp
-
+# Obtain desired months
+d_months = [(config['start_month']+leadm)%12 if config['start_month']+leadm!=12 else 12 for leadm in range(6)]
 # Subsetting data
 era5_clim_sf = era5_clim_sf.where(
-          #era5_clim_sf.time.dt.year > 1978, # &
-          era5_clim_sf.time.dt.month.isin([12, 1, 2]),
-          drop = True).sel(time=slice('1941-11-01','2020-11-01')).rename({'latitude':'lat','longitude':'lon'})
+          #era5_clim.time.dt.year > 1978, # &
+          era5_clim_sf.time.dt.month.isin(d_months),
+          drop = True).sel(time=slice('1941-{:02d}-01'.format(d_months[0]),'2020-{:02d}-01'.format(d_months[-1]))).rename({'latitude':'lat','longitude':'lon'})
+# Assign 'forecastMonth' coordinate values
+fcmonths = [mm+1 if mm>=0 else mm+13 for mm in [t.month - config['start_month'] for t in pd.to_datetime(era5_clim_sf.valid_time.values)] ]
+era5_clim_sf = era5_clim_sf.assign_coords(forecastMonth=('time',fcmonths))
 
 # Calculate 3-month aggregations
 era5_clim_sf_3m = era5_clim_sf.rolling(time=3).mean()
 # rolling() assigns the label to the end of the N month period, so the first N-1 elements have NaN and can be dropped
-era5_clim_sf_3m = era5_clim_sf_3m.where(era5_clim_sf_3m.time.dt.month.isin(2), drop=True).drop(['number', 'step', 'valid_time'])
+era5_clim_sf_3m = era5_clim_sf_3m.where(era5_clim_sf_3m.forecastMonth>=3, drop=True).drop(['number', 'step'])
 
-# Calculate anomalies
-clmean_sf = era5_clim_sf_3m.mean(dim='time')
-clanom_sf = era5_clim_sf_3m - clmean_sf
+# Calculate 1m anomalies
+clmean_sf = era5_clim_sf.groupby('time.month').mean('time')
+clanom_sf = era5_clim_sf.groupby('time.month') - clmean_sf
+# Calculate 3m anomalies
+clmean_sf_3m = era5_clim_sf_3m.groupby('time.month').mean('time')
+clanom_sf_3m = era5_clim_sf_3m.groupby('time.month') - clmean_sf_3m
+
 
 # %% [markdown]
 # ## 2.4  Climatological EOF and PCs
@@ -282,156 +299,179 @@ print("2.4 Climatological EOF and PCs")
 # Square-root of cosine of latitude weights are applied before the computation of EOFs
 coslat = np.cos(np.deg2rad(clanom.coords['lat'].values)).clip(0., 1.)
 wgts = np.sqrt(coslat)[..., np.newaxis]
-# Create an EOF solver to do the EOF analysis.
-solver = Eof(clanom.z, weights=wgts)
-# Retrieve the leading EOF, expressed as the correlation between the leading PC time series and the input SLP anomalies at each grid point
-eofs_corr = solver.eofsAsCorrelation(neofs=4)
-explained_var = solver.varianceFraction()
-# Extracting the principal component
-pcs = solver.pcs(npcs=4, pcscaling=1)
 
-# PLOTs EOFs
-fig = plt.figure(figsize=(15,11))
-gs = fig.add_gridspec(2,2)
-ax1 = fig.add_subplot(gs[0,0],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-fill = ax1.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=0).squeeze(),
-                   levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
-                   transform=ccrs.PlateCarree())
-title = 'EOF1 correlation - NAO\n Explained variance: {:.2f} %'.format(explained_var[0].values*100.)
-plt.title(title, fontsize=12)
-ax1.coastlines(resolution='50m')
-ax1.gridlines()
-ax2 = fig.add_subplot(gs[0,1],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-fill = ax2.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=1).squeeze(),
-                   levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
-                   transform=ccrs.PlateCarree())
-title = 'EOF2 correlation - EA \n Explained variance: {:.2f} %'.format(explained_var[1].values*100.)
-plt.title(title, fontsize=12)
-ax2.coastlines(resolution='50m')
-ax2.gridlines()
-ax3 = fig.add_subplot(gs[1,0],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-fill = ax3.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=2).squeeze(),
-                   levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
-                   transform=ccrs.PlateCarree())
-title = 'EOF3 correlation - EAWR \n Explained variance: {:.2f} %'.format(explained_var[2].values*100.)
-plt.title(title, fontsize=12)
-ax3.coastlines(resolution='50m')
-ax3.gridlines()
-ax4 = fig.add_subplot(gs[1,1],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-fill = ax4.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=3).squeeze(),
-                   levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
-                   transform=ccrs.PlateCarree())
-title = 'EOF4 correlation - SCA \n Explained variance: {:.2f} %'.format(explained_var[3].values*100.)
-plt.title(title, fontsize=12)
-ax4.coastlines(resolution='50m')
-ax4.gridlines()
-cbar_ax = fig.add_axes([0.05, 0.05, 0.9, 0.01])
-cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
-plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
-fig.savefig(f'{PLOTSDIR}/ERA5_EOFs.png')
+list_solvers = {"forecastMonth":[],"EOFs":[]} 
+# For each forecast month
+for f in hcanom.forecastMonth:
+    # Create an EOF solver to do the EOF analysis.
+    cl_array = clanom.where(clanom.forecastMonth==f, drop=True)
+    solver = Eof(cl_array.z, weights=wgts)
+    list_solvers["forecastMonth"].append(int(f.values))
+    list_solvers["EOFs"].append(solver)
 
-# PLOTs correlations
-names = ['NAO', 'EA', 'EAWR', 'SCA']
-for modo in range(4):
-    mslp_corr = xs.spearman_r(clanom_sf.msl, pcs.sel(mode=modo), dim='time')
-    t2m_corr = xs.spearman_r(clanom_sf.t2m, pcs.sel(mode=modo), dim='time')
-    tp_corr = xs.spearman_r(clanom_sf.tp, pcs.sel(mode=modo), dim='time')
+list_solvers_3m = {"forecastMonth":[],"EOFs":[]} 
+# For each forecast month
+for f in hcanom_3m.forecastMonth:
+    # Create an EOF solver to do the EOF analysis.
+    cl_array = clanom_3m.where(clanom_3m.forecastMonth==f, drop=True)
+    cl_array_sf = clanom_sf_3m.where(clanom_sf_3m.forecastMonth==f, drop=True)
+    solver = Eof(cl_array.z, weights=wgts)
+    list_solvers_3m["forecastMonth"].append(int(f.values))
+    list_solvers_3m["EOFs"].append(solver)
+    # Retrieve the leading EOF, expressed as the correlation between the leading PC time series and the input SLP anomalies at each grid point
+    eofs_corr = solver.eofsAsCorrelation(neofs=4)
+    explained_var = solver.varianceFraction()
+    # Extracting the principal component
+    pcs = solver.pcs(npcs=4, pcscaling=1)
 
-    fig = plt.figure(figsize=(15,4))
-    gs = fig.add_gridspec(1,3)
+    # Months string
+    locale.setlocale(locale.LC_ALL, 'en_GB')
+    validmonths = [vm if vm<=12 else vm-12 for vm in [config['start_month'] + (int(f.values)-1) - shift for shift in range(3)]]
+    validmonths = [calendar.month_abbr[vm][0] for vm in reversed(validmonths)]
+    tit_line = "".join(validmonths)
+
+    # PLOTs EOFs
+    fig = plt.figure(figsize=(15,11))
+    gs = fig.add_gridspec(2,2)
     ax1 = fig.add_subplot(gs[0,0],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-    fill = ax1.contourf(mslp_corr.lon,mslp_corr.lat,mslp_corr.squeeze(),
+    fill = ax1.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=0).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = 'Mean sea level pressure - {} correlation'.format(names[modo])
+    title = 'EOF1 correlation - NAO\n Explained variance: {:.2f} %'.format(explained_var[0].values*100.)
     plt.title(title, fontsize=12)
     ax1.coastlines(resolution='50m')
     ax1.gridlines()
     ax2 = fig.add_subplot(gs[0,1],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-    fill = ax2.contourf(t2m_corr.lon,t2m_corr.lat,t2m_corr.squeeze(),
+    fill = ax2.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=1).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = '2m temperature - {} correlation'.format(names[modo])
+    title = 'EOF2 correlation - EA \n Explained variance: {:.2f} %'.format(explained_var[1].values*100.)
     plt.title(title, fontsize=12)
     ax2.coastlines(resolution='50m')
     ax2.gridlines()
-    ax3 = fig.add_subplot(gs[0,2],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
-    fill = ax3.contourf(tp_corr.lon,tp_corr.lat,tp_corr.squeeze(),
+    ax3 = fig.add_subplot(gs[1,0],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
+    fill = ax3.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=2).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = 'Total precipitation - {} correlation'.format(names[modo])
+    title = 'EOF3 correlation - EAWR \n Explained variance: {:.2f} %'.format(explained_var[2].values*100.)
     plt.title(title, fontsize=12)
     ax3.coastlines(resolution='50m')
     ax3.gridlines()
-    cbar_ax = fig.add_axes([0.05, 0.08, 0.9, 0.04])
+    ax4 = fig.add_subplot(gs[1,1],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
+    fill = ax4.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=3).squeeze(),
+                    levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
+                    transform=ccrs.PlateCarree())
+    title = 'EOF4 correlation - SCA \n Explained variance: {:.2f} %'.format(explained_var[3].values*100.)
+    plt.title(title, fontsize=12)
+    ax4.coastlines(resolution='50m')
+    ax4.gridlines()
+    cbar_ax = fig.add_axes([0.05, 0.05, 0.9, 0.01])
     cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
-    #fig.suptitle('', fontsize=16)
     plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
-    fig.savefig(f'{PLOTSDIR}/ERA5_EOF{str(modo+1)}.png')
+    fig.savefig(f'./plots/ERA5_EOFs_{tit_line}.png')
 
-# PLOTs PCs
-fig = plt.figure(figsize=(8,12))
-gs = fig.add_gridspec(4,1)
-years = pcs.time.dt.year
-ax1 = fig.add_subplot(gs[0,0])
-plt.fill_between(years, 0, pcs.sel(mode=0), where=(pcs.sel(mode=0) >= 0), color='r',
-                 interpolate=True)
-plt.fill_between(years, pcs.sel(mode=0), 0, where=(pcs.sel(mode=0) <= 0), color='b',
-                 interpolate=True)
-plt.axhline(0, color='k')
-plt.xlabel('Year')
-plt.ylabel('PC1')
-plt.title('$NAO_{EOF}$', loc='left')
-ax1.grid(True,axis='x')
-plt.ylim([-3., 3.])
-ax2 = fig.add_subplot(gs[1,0])
-plt.fill_between(years, 0, pcs.sel(mode=1), where=(pcs.sel(mode=1) >= 0), color='r',
-                 interpolate=True)
-plt.fill_between(years, pcs.sel(mode=1), 0, where=(pcs.sel(mode=1) <= 0), color='b',
-                 interpolate=True)
-plt.axhline(0, color='k')
-plt.xlabel('Year')
-plt.ylabel('PC2')
-plt.title('$EA_{EOF}$', loc='left')
-ax2.grid(True,axis='x')
-plt.ylim([-3., 3.])
-ax3 = fig.add_subplot(gs[2,0])
-plt.fill_between(years, 0, pcs.sel(mode=2), where=(pcs.sel(mode=2) >= 0), color='r',
-                 interpolate=True)
-plt.fill_between(years, pcs.sel(mode=2), 0, where=(pcs.sel(mode=2) <= 0), color='b',
-                 interpolate=True)
-plt.axhline(0, color='k')
-plt.xlabel('Year')
-plt.ylabel('PC3')
-plt.title('$EAWR_{EOF}$', loc='left')
-ax3.grid(True,axis='x')
-plt.ylim([-3., 3.])
-ax4 = fig.add_subplot(gs[3,0])
-plt.fill_between(years, 0, pcs.sel(mode=3), where=(pcs.sel(mode=3) >= 0), color='r',
-                 interpolate=True)
-plt.fill_between(years, pcs.sel(mode=3), 0, where=(pcs.sel(mode=3) <= 0), color='b',
-                 interpolate=True)
-plt.axhline(0, color='k')
-plt.xlabel('Year')
-plt.ylabel('PC4')
-plt.title('$SCA_{EOF}$', loc='left')
-ax4.grid(True,axis='x')
-plt.ylim([-3., 3.])
-plt.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.05, hspace=0.25, wspace=0.1)
-fig.savefig(f'{PLOTSDIR}/ERA5_PCs.png')
+    # PLOTs correlations
+    names = ['NAO', 'EA', 'EAWR', 'SCA']
+    for modo in range(4):
+        mslp_corr = xs.spearman_r(cl_array_sf.msl, pcs.sel(mode=modo), dim='time')
+        t2m_corr = xs.spearman_r(cl_array_sf.t2m, pcs.sel(mode=modo), dim='time')
+        tp_corr = xs.spearman_r(cl_array_sf.tp, pcs.sel(mode=modo), dim='time')
 
-plt.figure(figsize=(8, 4))
-eof_num = range(1, 16)
-plt.plot(eof_num, explained_var[0:15], linewidth=2)
-plt.plot(eof_num, explained_var[0:15], linestyle='None', marker="o", color='r', markersize=4)
-plt.axhline(0, color='k')
-plt.xticks(range(1, 16))
-plt.title('Fraction of the total variance represented by each EOF')
-plt.xlabel('EOF #')
-plt.ylabel('Variance Fraction')
-plt.xlim(1, 15)
-plt.ylim([0, 0.6])
-plt.savefig(f'{PLOTSDIR}/ERA5_VAR.png')
+        fig = plt.figure(figsize=(15,4))
+        gs = fig.add_gridspec(1,3)
+        ax1 = fig.add_subplot(gs[0,0],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
+        fill = ax1.contourf(mslp_corr.lon,mslp_corr.lat,mslp_corr.squeeze(),
+                        levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
+                        transform=ccrs.PlateCarree())
+        title = 'Mean sea level pressure - {} correlation'.format(names[modo])
+        plt.title(title, fontsize=12)
+        ax1.coastlines(resolution='50m')
+        ax1.gridlines()
+        ax2 = fig.add_subplot(gs[0,1],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
+        fill = ax2.contourf(t2m_corr.lon,t2m_corr.lat,t2m_corr.squeeze(),
+                        levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
+                        transform=ccrs.PlateCarree())
+        title = '2m temperature - {} correlation'.format(names[modo])
+        plt.title(title, fontsize=12)
+        ax2.coastlines(resolution='50m')
+        ax2.gridlines()
+        ax3 = fig.add_subplot(gs[0,2],projection=ccrs.Orthographic(central_longitude=-15, central_latitude=50))
+        fill = ax3.contourf(tp_corr.lon,tp_corr.lat,tp_corr.squeeze(),
+                        levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
+                        transform=ccrs.PlateCarree())
+        title = 'Total precipitation - {} correlation'.format(names[modo])
+        plt.title(title, fontsize=12)
+        ax3.coastlines(resolution='50m')
+        ax3.gridlines()
+        cbar_ax = fig.add_axes([0.05, 0.08, 0.9, 0.04])
+        cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
+        #fig.suptitle('', fontsize=16)
+        plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
+        fig.savefig(f'./plots/ERA5_EOF{str(modo+1)}_{tit_line}.png')
+
+    # PLOTs PCs
+    fig = plt.figure(figsize=(8,12))
+    gs = fig.add_gridspec(4,1)
+    years = pcs.time.dt.year
+    ax1 = fig.add_subplot(gs[0,0])
+    plt.fill_between(years, 0, pcs.sel(mode=0), where=(pcs.sel(mode=0) >= 0), color='r',
+                    interpolate=True)
+    plt.fill_between(years, pcs.sel(mode=0), 0, where=(pcs.sel(mode=0) <= 0), color='b',
+                    interpolate=True)
+    plt.axhline(0, color='k')
+    plt.xlabel('Year')
+    plt.ylabel('PC1')
+    plt.title('$NAO_{EOF}$', loc='left')
+    ax1.grid(True,axis='x')
+    plt.ylim([-3., 3.])
+    ax2 = fig.add_subplot(gs[1,0])
+    plt.fill_between(years, 0, pcs.sel(mode=1), where=(pcs.sel(mode=1) >= 0), color='r',
+                    interpolate=True)
+    plt.fill_between(years, pcs.sel(mode=1), 0, where=(pcs.sel(mode=1) <= 0), color='b',
+                    interpolate=True)
+    plt.axhline(0, color='k')
+    plt.xlabel('Year')
+    plt.ylabel('PC2')
+    plt.title('$EA_{EOF}$', loc='left')
+    ax2.grid(True,axis='x')
+    plt.ylim([-3., 3.])
+    ax3 = fig.add_subplot(gs[2,0])
+    plt.fill_between(years, 0, pcs.sel(mode=2), where=(pcs.sel(mode=2) >= 0), color='r',
+                    interpolate=True)
+    plt.fill_between(years, pcs.sel(mode=2), 0, where=(pcs.sel(mode=2) <= 0), color='b',
+                    interpolate=True)
+    plt.axhline(0, color='k')
+    plt.xlabel('Year')
+    plt.ylabel('PC3')
+    plt.title('$EAWR_{EOF}$', loc='left')
+    ax3.grid(True,axis='x')
+    plt.ylim([-3., 3.])
+    ax4 = fig.add_subplot(gs[3,0])
+    plt.fill_between(years, 0, pcs.sel(mode=3), where=(pcs.sel(mode=3) >= 0), color='r',
+                    interpolate=True)
+    plt.fill_between(years, pcs.sel(mode=3), 0, where=(pcs.sel(mode=3) <= 0), color='b',
+                    interpolate=True)
+    plt.axhline(0, color='k')
+    plt.xlabel('Year')
+    plt.ylabel('PC4')
+    plt.title('$SCA_{EOF}$', loc='left')
+    ax4.grid(True,axis='x')
+    plt.ylim([-3., 3.])
+    plt.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.05, hspace=0.25, wspace=0.1)
+    fig.savefig(f'./plots/ERA5_PCs_{tit_line}.png')
+
+    plt.figure(figsize=(8, 4))
+    eof_num = range(1, 16)
+    plt.plot(eof_num, explained_var[0:15], linewidth=2)
+    plt.plot(eof_num, explained_var[0:15], linestyle='None', marker="o", color='r', markersize=4)
+    plt.axhline(0, color='k')
+    plt.xticks(range(1, 16))
+    plt.title('Fraction of the total variance represented by each EOF')
+    plt.xlabel('EOF #')
+    plt.ylabel('Variance Fraction')
+    plt.xlim(1, 15)
+    plt.ylim([0, 0.6])
+    plt.savefig(f'./plots/ERA5_VAR_{tit_line}.png')
 
 # %% [markdown]
 # ## 2.5  Hindcast PCs
@@ -458,6 +498,7 @@ for n in hcanom.number:
         # For each year
         for t in hcanom.start_date:
             # Project the z500hPa field in the EOF solver
+            solver = list_solvers["EOFs"][list_solvers["forecastMonth"]==int(f.values)]
             pcs = solver.projectField(hcanom.sel(number=n,forecastMonth=f,start_date=t).z, neofs=number_of_eofs, eofscaling=1)
             list3_hcpcs.append(pcs.assign_coords({'start_date':t}))
         list3 = xr.concat(list3_hcpcs,dim='start_date')                    
@@ -483,6 +524,7 @@ for n in hcanom_3m.number:
         # For each year
         for t in hcanom_3m.start_date:
             # Project the z500hPa field in the EOF solver
+            solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"]==int(f.values)]
             pcs = solver.projectField(hcanom_3m.sel(number=n,forecastMonth=f,start_date=t).z, neofs=number_of_eofs, eofscaling=1)
             list3_hcpcs.append(pcs.assign_coords({'start_date':t}))
         list3 = xr.concat(list3_hcpcs,dim='start_date')                    
@@ -507,6 +549,7 @@ obanom = obanom.load()
 # For each year
 for t in obanom.valid_time:
     # Project the z500hPa field in the EOF solver
+    solver = list_solvers["EOFs"][list_solvers["forecastMonth"]==int(f.values)]
     pcs = solver.projectField(obanom.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs = xr.concat(list1_obpcs,dim='valid_time')      
@@ -517,6 +560,7 @@ obanom_3m = obanom_3m.load()
 # For each year
 for t in obanom_3m.valid_time:
     # Project the z500hPa field in the EOF solver
+    solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"]==int(f.values)]
     pcs = solver.projectField(obanom_3m.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                   
