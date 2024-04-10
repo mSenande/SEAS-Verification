@@ -73,7 +73,7 @@ full_name = {#'ECMWF-System 4': ['ecmwf','4'],
             }
 
 # Number of lead-times
-lts=4
+lts=3
 # List of initializations
 if aggr=='1m':
     initialization = {calendar.month_name[endmonth-(l+1) if endmonth-(l+1)>0 else endmonth-(l+1)+12]: [endmonth-(l+1) if endmonth-(l+1)>0 else endmonth-(l+1)+12, l+2] for l in reversed(range(lts))}

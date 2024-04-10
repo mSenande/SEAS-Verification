@@ -13,5 +13,5 @@ do
     python -u 4-Verification_plots.py "$institution" "$name" $startmonth "$aggr" $fcmonth
     python -u 5-Bootstrap.py "$institution" "$name" $startmonth "$aggr" $fcmonth
 done < <(tail -n +2 models.csv)
-python -u 6-Multi-System_Verification_plots.py $startmonth "$aggr" $fcmonth 
+#python -u 6-Multi-System_Verification_plots.py $startmonth "$aggr" $fcmonth 
 
