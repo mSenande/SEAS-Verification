@@ -110,6 +110,12 @@ Canarias = {
     'lon': slice(-18.5,-13.),
 }
 
+IP = xr.open_dataset('./utils/IberianPeninsula.nc')
+
+IP['Band1'] = xr.where(~np.isnan(IP.Band1),1.,IP.Band1)
+IP['Band1'] = xr.where(np.isnan(IP.Band1),0.,IP.Band1)
+
+
 # %% [markdown]
 # ## 5.1 Array construction
 
@@ -152,6 +158,15 @@ for label in full_name:
         fname = '{datadir}/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
         scorefile = xr.open_dataset(fname).sel(forecastMonth=fcmonth)
 
+        # Mask interpolation
+        lat_vector_IP = scorefile['lat'].sel(lat=Peninsula['lat'])
+        lon_vector_IP = scorefile['lon'].sel(lon=Peninsula['lon'])
+        mask_IP = IP.interp(lat=lat_vector_IP[::-1], lon=lon_vector_IP, method="linear")
+        coslat_IP = np.cos(np.deg2rad(mask_IP.coords['lat'].values)).clip(0., 1.)
+        wgts_IP = mask_IP['Band1']*np.sqrt(coslat_IP)[..., np.newaxis]
+        coslat = np.cos(np.deg2rad(scorefile.coords['lat'].values)).clip(0., 1.)
+        wgts = xr.full_like(scorefile,fill_value=1.)*np.sqrt(coslat)[..., np.newaxis]
+
         v = 0
         # For each variable
         for var in VARNAMES:
@@ -161,7 +176,7 @@ for label in full_name:
                     # For each tercile
                     for t in range(n_terciles):
                         # Filling the array
-                        DATA[t+v*n_terciles,m*n_init+i] = float(scorefile[var].sel(category=t,lat=Peninsula['lat'],lon=Peninsula['lon']).mean().load().values)
+                        DATA[t+v*n_terciles,m*n_init+i] = float(scorefile[var].sel(category=t,lat=Peninsula['lat'],lon=Peninsula['lon']).weighted(wgts_IP).mean().load().values)
                         print('Model {}, Variable {}, Initialization {}, Tercile {}:'.format(model,var,init,t))
                         print(float(DATA[t+v*n_terciles,m*n_init+i]))
                     v+=1
@@ -174,7 +189,7 @@ for label in full_name:
                     v+=1
                 else:
                     # Filling the array
-                    DATA[v*n_terciles,m*n_init+i] = float(scorefile[var].sel(lat=Peninsula['lat'],lon=Peninsula['lon']).mean().load().values)
+                    DATA[v*n_terciles,m*n_init+i] = float(scorefile[var].sel(lat=Peninsula['lat'],lon=Peninsula['lon']).weighted(wgts_IP).mean().load().values)
                     print('Model {}, Variable {}, Initialization {}:'.format(model,var,init))
                     print(float(DATA[v*n_terciles,m*n_init+i]))
                     v+=1
@@ -187,13 +202,13 @@ for label in full_name:
                     # For each tercile
                     for t in range(n_terciles):
                         # Filling the array
-                        DATA[t+v*n_terciles,m*n_init+i] = float(scorefile[var].sel(category=t).mean().load().values)
+                        DATA[t+v*n_terciles,m*n_init+i] = float(scorefile[var].sel(category=t).weighted(wgts[var]).mean().load().values)
                         print('Model {}, Variable {}, Initialization {}, Tercile {}:'.format(model,var,init,t))
                         print(float(DATA[t+v*n_terciles,m*n_init+i]))
                     v+=1
                 else:
                     # Filling the array
-                    DATA[v*n_terciles,m*n_init+i] = float(scorefile[var].mean().load().values)
+                    DATA[v*n_terciles,m*n_init+i] = float(scorefile[var].weighted(wgts[var]).mean().load().values)
                     print('Model {}, Variable {}, Initialization {}:'.format(model,var,init))
                     print(float(DATA[v*n_terciles,m*n_init+i]))
                     v+=1

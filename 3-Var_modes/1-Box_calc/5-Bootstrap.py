@@ -12,7 +12,7 @@
 # First we have to decide a forecast system (institution and system name), a start month a month aggregation and a end month. 
 
 #%%
-print("6. Compute score uncertainties with bootstrap")
+print("5. Compute score uncertainties with bootstrap")
 
 import os
 import sys
