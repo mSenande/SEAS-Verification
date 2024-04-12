@@ -70,6 +70,26 @@
             </p>     
         </section>
         <div id="selectors" class="seleccion">
+            <label for="sel_season">
+                Season: 
+            </label>
+            <select id="sel_season">
+                <option value="DJF">
+                    DJF
+                </option>
+                <option value="MAM">
+                    MAM
+                </option>
+                <option value="AMJ">
+                    AMJ
+                </option>
+                <option value="JJA">
+                    JJA
+                </option>
+                <option value="SON">
+                    SON
+                </option>
+            </select>
             <label for="sel_score">
                 Score: 
             </label>
@@ -134,17 +154,14 @@
                 Nominal start date: 
             </label>
             <select id="sel_stdate">
-                <option value="11">
+                <option id="lead1" value="11">
                     November
                 </option>
-                <option value="10">
+                <option id="lead2" value="10">
                     October
                 </option>
-                <option value="9">
+                <option id="lead3" value="9">
                     September
-                </option>
-                <option value="8">
-                    August
                 </option>
             </select>
             <label for="sel_varn">
@@ -169,7 +186,7 @@
             </select>
         </div>
         <img id="plot2" class="imagen" src="../3-Var_modes/1-Box_calc/plots/stmonth11/ecmwf_s51_stmonth11_hindcast1993-2016_monthly.3m.DJF.nao_box.png"><br>
-        <img id="plot3" class="imagen" src="../3-Var_modes/2-EOFs_calc/plots/ERA5_EOF1.png"><br>
+        <img id="plot3" class="imagen" src="../3-Var_modes/2-EOFs_calc/plots/ERA5_EOF1_DJF.png"><br>
         <img id="plot4" class="imagen" src="../3-Var_modes/1-Box_calc/plots/stmonth11/ecmwf_s51_stmonth11_hindcast1993-2016_monthly.3m.DJF.nao_box.corr-bootstrap.png"><br>
         <p><br></p> &nbsp; &nbsp;
     </main>
