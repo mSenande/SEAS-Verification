@@ -300,16 +300,17 @@ print("2.4 Climatological EOF and PCs")
 coslat = np.cos(np.deg2rad(clanom.coords['lat'].values)).clip(0., 1.)
 wgts = np.sqrt(coslat)[..., np.newaxis]
 
-list_solvers = {"forecastMonth":[],"EOFs":[]} 
+list_solvers = {"forecastMonth":[],"validMonth":[],"EOFs":[]} 
 # For each forecast month
 for f in hcanom.forecastMonth:
     # Create an EOF solver to do the EOF analysis.
     cl_array = clanom.where(clanom.forecastMonth==f, drop=True)
     solver = Eof(cl_array.z, weights=wgts)
     list_solvers["forecastMonth"].append(int(f.values))
+    list_solvers["validMonth"].append(int(cl_array['valid_time.month'].values[0]))
     list_solvers["EOFs"].append(solver)
 
-list_solvers_3m = {"forecastMonth":[],"EOFs":[]} 
+list_solvers_3m = {"forecastMonth":[],"validMonth":[],"EOFs":[]} 
 # For each forecast month
 for f in hcanom_3m.forecastMonth:
     # Create an EOF solver to do the EOF analysis.
@@ -317,6 +318,7 @@ for f in hcanom_3m.forecastMonth:
     cl_array_sf = clanom_sf_3m.where(clanom_sf_3m.forecastMonth==f, drop=True)
     solver = Eof(cl_array.z, weights=wgts)
     list_solvers_3m["forecastMonth"].append(int(f.values))
+    list_solvers_3m["validMonth"].append(int(cl_array['valid_time.month'].values[0]))
     list_solvers_3m["EOFs"].append(solver)
     # Retrieve the leading EOF, expressed as the correlation between the leading PC time series and the input SLP anomalies at each grid point
     eofs_corr = solver.eofsAsCorrelation(neofs=4)
@@ -498,7 +500,7 @@ for n in hcanom.number:
         # For each year
         for t in hcanom.start_date:
             # Project the z500hPa field in the EOF solver
-            solver = list_solvers["EOFs"][list_solvers["forecastMonth"]==int(f.values)]
+            solver = list_solvers["EOFs"][list_solvers["forecastMonth"].index(int(f.values))]
             pcs = solver.projectField(hcanom.sel(number=n,forecastMonth=f,start_date=t).z, neofs=number_of_eofs, eofscaling=1)
             list3_hcpcs.append(pcs.assign_coords({'start_date':t}))
         list3 = xr.concat(list3_hcpcs,dim='start_date')                    
@@ -524,7 +526,7 @@ for n in hcanom_3m.number:
         # For each year
         for t in hcanom_3m.start_date:
             # Project the z500hPa field in the EOF solver
-            solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"]==int(f.values)]
+            solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"].index(int(f.values))]
             pcs = solver.projectField(hcanom_3m.sel(number=n,forecastMonth=f,start_date=t).z, neofs=number_of_eofs, eofscaling=1)
             list3_hcpcs.append(pcs.assign_coords({'start_date':t}))
         list3 = xr.concat(list3_hcpcs,dim='start_date')                    
@@ -549,7 +551,7 @@ obanom = obanom.load()
 # For each year
 for t in obanom.valid_time:
     # Project the z500hPa field in the EOF solver
-    solver = list_solvers["EOFs"][list_solvers["forecastMonth"]==int(f.values)]
+    solver = list_solvers["EOFs"][list_solvers["validMonth"].index(int(t['valid_time.month'].values))]
     pcs = solver.projectField(obanom.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs = xr.concat(list1_obpcs,dim='valid_time')      
@@ -560,7 +562,7 @@ obanom_3m = obanom_3m.load()
 # For each year
 for t in obanom_3m.valid_time:
     # Project the z500hPa field in the EOF solver
-    solver = list_solvers_3m["EOFs"][list_solvers_3m["forecastMonth"]==int(f.values)]
+    solver = list_solvers_3m["EOFs"][list_solvers_3m["validMonth"].index(int(t['valid_time.month'].values))]
     pcs = solver.projectField(obanom_3m.sel(valid_time=t).z, neofs=number_of_eofs, eofscaling=1)
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                   

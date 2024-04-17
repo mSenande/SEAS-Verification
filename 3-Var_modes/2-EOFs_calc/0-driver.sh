@@ -8,8 +8,8 @@ while IFS="," read -r institution name
 do
     echo "Model: $institution $name"
     #python -u 1-Download_data.py "$institution" "$name" $startmonth
-    #python -u 2-Compute_EOFs.py "$institution" "$name" $startmonth
-    #python -u 3-Postprocess.py "$institution" "$name" $startmonth
+    python -u 2-Compute_EOFs.py "$institution" "$name" $startmonth
+    python -u 3-Postprocess.py "$institution" "$name" $startmonth
     python -u 4-Verification_plots.py "$institution" "$name" $startmonth "$aggr" $fcmonth
     python -u 5-Bootstrap.py "$institution" "$name" $startmonth "$aggr" $fcmonth
 done < <(tail -n +2 models.csv)
