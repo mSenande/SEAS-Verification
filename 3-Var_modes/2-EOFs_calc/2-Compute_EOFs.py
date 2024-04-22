@@ -285,7 +285,6 @@ clanom_sf = era5_clim_sf.groupby('time.month') - clmean_sf
 clmean_sf_3m = era5_clim_sf_3m.groupby('time.month').mean('time')
 clanom_sf_3m = era5_clim_sf_3m.groupby('time.month') - clmean_sf_3m
 
-
 # %% [markdown]
 # ## 2.4  Climatological EOF and PCs
 
@@ -309,6 +308,12 @@ for f in hcanom.forecastMonth:
     list_solvers["forecastMonth"].append(int(f.values))
     list_solvers["validMonth"].append(int(cl_array['valid_time.month'].values[0]))
     list_solvers["EOFs"].append(solver)
+
+    validmonth = config['start_month']+f if config['start_month']+f<=12 else config['start_month']+f-12
+    explained_var = solver.varianceFraction()
+    variance = pd.DataFrame({'EOF': range(1,5), 'VAR':explained_var[0:4]})
+    variance.to_csv(f'{MODESDIR}/ERA5_VAR_{validmonth:02d}.csv')
+
 
 list_solvers_3m = {"forecastMonth":[],"validMonth":[],"EOFs":[]} 
 # For each forecast month
@@ -474,6 +479,8 @@ for f in hcanom_3m.forecastMonth:
     plt.xlim(1, 15)
     plt.ylim([0, 0.6])
     plt.savefig(f'./plots/ERA5_VAR_{tit_line}.png')
+    variance = pd.DataFrame({'EOF': range(1,5), 'VAR':explained_var[0:4]})
+    variance.to_csv(f'{MODESDIR}/ERA5_VAR_{tit_line}.csv')
 
 # %% [markdown]
 # ## 2.5  Hindcast PCs
