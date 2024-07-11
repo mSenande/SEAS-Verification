@@ -151,7 +151,7 @@ if not os.path.exists(hcst_fname):
             'month': '{:02d}'.format(config['start_month']),
             'leadtime_month': ['1', '2', '3','4', '5', '6'],
             'grid': '1/1',
-            'area': [50, -30, 25, 5],
+            'area': [55, -35, 10, 55], #[50, -30, 25, 5],
         },
         hcst_fname)
 
@@ -181,7 +181,7 @@ if not os.path.exists(obs_fname):
             'month': ['{:02d}'.format((config['start_month']+leadm)%12) if config['start_month']+leadm!=12 else '12' for leadm in range(6)],
             'time': '00:00',
             'grid': '1/1',
-            'area': [50, -30, 25, 5],
+            'area': [55, -35, 10, 55], #[50, -30, 25, 5],
             'format': 'grib',
         },
         obs_fname)

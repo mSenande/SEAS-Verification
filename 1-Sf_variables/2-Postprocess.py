@@ -224,16 +224,11 @@ print("2.3 Read observation data")
 if 'total_precipitation' in config['list_vars']:
     # Total precipitation in ERA5 grib must be read separately because of time dimension
     era5_1deg_notp = xr.open_dataset(obs_fname, engine='cfgrib', backend_kwargs={'filter_by_keys': {'step': 0}})
-    era5_1deg_tp = xr.open_dataset(obs_fname, engine='cfgrib', backend_kwargs={'filter_by_keys': {'shortName': 'mtpr'}})
+    era5_1deg_tp = xr.open_dataset(obs_fname, engine='cfgrib', backend_kwargs={'filter_by_keys': {'shortName': 'tp'}})
     # We assign the same time dimension
     era5_1deg_tp = era5_1deg_tp.assign_coords(time=era5_1deg_notp.time.values)
     # We assign the same name as in hindcast
-    era5_1deg_tp = era5_1deg_tp.rename({'mtpr':'tprate'})
-    # We assign the same units as in hindcast
-    era5_1deg_tp.tprate.values = era5_1deg_tp.tprate.values*0.001
-    era5_1deg_tp.attrs["units"] = 'm s**-1'
-    era5_1deg_tp.tprate.attrs["units"] = 'm s**-1'
-    era5_1deg_tp.tprate.attrs["GRIB_units"] = 'm s**-1'
+    era5_1deg_tp = era5_1deg_tp.rename({'tp':'tprate'})
     # We merge the two datasets
     era5_1deg = xr.merge([era5_1deg_notp,era5_1deg_tp],compat='override')
     del era5_1deg_notp, era5_1deg_tp

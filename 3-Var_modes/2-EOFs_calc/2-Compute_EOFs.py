@@ -116,6 +116,20 @@ DATADIR = os.getenv('DATA_DIR')
 MODESDIR = DATADIR + '/modes'
 SCOREDIR = DATADIR + '/scores'
 PLOTSDIR = f'./plots/stmonth{config["start_month"]:02d}'
+PLOTSDIR_EOFpatterns = f'./plots/EOFs/patterns'
+PLOTSDIR_EOFpcs = f'./plots/EOFs/pcs'
+PLOTSDIR_EOFcorrelations = f'./plots/EOFs/correlations'
+PLOTSDIR_EOFvariance = f'./plots/EOFs/variance'
+# Directory creation
+for directory in [PLOTSDIR_EOFpatterns, PLOTSDIR_EOFpcs, PLOTSDIR_EOFcorrelations, PLOTSDIR_EOFvariance]:
+    # Check if the directory exists
+    if not os.path.exists(directory):
+        # If it doesn't exist, create it
+        try:
+            os.makedirs(directory)
+        except FileExistsError:
+            pass
+
 # Base name for hindcast
 hcst_bname = '{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly'.format(**config)
 # File name for hindcast
@@ -344,7 +358,7 @@ for f in hcanom_3m.forecastMonth:
     fill = ax1.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=0).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = 'EOF1 correlation - NAO\n Explained variance: {:.2f} %'.format(explained_var[0].values*100.)
+    title = 'EOF1 correlation\n Explained variance: {:.2f} %'.format(explained_var[0].values*100.)
     plt.title(title, fontsize=12)
     ax1.coastlines(resolution='50m')
     ax1.gridlines()
@@ -352,7 +366,7 @@ for f in hcanom_3m.forecastMonth:
     fill = ax2.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=1).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = 'EOF2 correlation - EA \n Explained variance: {:.2f} %'.format(explained_var[1].values*100.)
+    title = 'EOF2 correlation\n Explained variance: {:.2f} %'.format(explained_var[1].values*100.)
     plt.title(title, fontsize=12)
     ax2.coastlines(resolution='50m')
     ax2.gridlines()
@@ -360,7 +374,7 @@ for f in hcanom_3m.forecastMonth:
     fill = ax3.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=2).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = 'EOF3 correlation - EAWR \n Explained variance: {:.2f} %'.format(explained_var[2].values*100.)
+    title = 'EOF3 correlation\n Explained variance: {:.2f} %'.format(explained_var[2].values*100.)
     plt.title(title, fontsize=12)
     ax3.coastlines(resolution='50m')
     ax3.gridlines()
@@ -368,17 +382,17 @@ for f in hcanom_3m.forecastMonth:
     fill = ax4.contourf(eofs_corr.lon,eofs_corr.lat,eofs_corr.sel(mode=3).squeeze(),
                     levels=np.linspace(-1.,1.,11), cmap=plt.cm.RdBu_r,
                     transform=ccrs.PlateCarree())
-    title = 'EOF4 correlation - SCA \n Explained variance: {:.2f} %'.format(explained_var[3].values*100.)
+    title = 'EOF4 correlation\n Explained variance: {:.2f} %'.format(explained_var[3].values*100.)
     plt.title(title, fontsize=12)
     ax4.coastlines(resolution='50m')
     ax4.gridlines()
     cbar_ax = fig.add_axes([0.05, 0.05, 0.9, 0.01])
     cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
     plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
-    fig.savefig(f'./plots/ERA5_EOFs_{tit_line}.png')
+    fig.savefig(f'{PLOTSDIR_EOFpatterns}/ERA5_EOFs_{tit_line}.png')
 
     # PLOTs correlations
-    names = ['NAO', 'EA', 'EAWR', 'SCA']
+    names = ['EOF1', 'EOF2', 'EOF3', 'EOF4']
     for modo in range(4):
         mslp_corr = xs.spearman_r(cl_array_sf.msl, pcs.sel(mode=modo), dim='time')
         t2m_corr = xs.spearman_r(cl_array_sf.t2m, pcs.sel(mode=modo), dim='time')
@@ -414,7 +428,7 @@ for f in hcanom_3m.forecastMonth:
         cb = fig.colorbar(fill, cax=cbar_ax, orientation='horizontal',label=' ')
         #fig.suptitle('', fontsize=16)
         plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.1, hspace=0.05, wspace=0.07)
-        fig.savefig(f'./plots/ERA5_EOF{str(modo+1)}_{tit_line}.png')
+        fig.savefig(f'{PLOTSDIR_EOFcorrelations}/ERA5_EOF{str(modo+1)}_{tit_line}.png')
 
     # PLOTs PCs
     fig = plt.figure(figsize=(8,12))
@@ -428,7 +442,7 @@ for f in hcanom_3m.forecastMonth:
     plt.axhline(0, color='k')
     plt.xlabel('Year')
     plt.ylabel('PC1')
-    plt.title('$NAO_{EOF}$', loc='left')
+    plt.title('$EOF1$', loc='left')
     ax1.grid(True,axis='x')
     plt.ylim([-3., 3.])
     ax2 = fig.add_subplot(gs[1,0])
@@ -439,7 +453,7 @@ for f in hcanom_3m.forecastMonth:
     plt.axhline(0, color='k')
     plt.xlabel('Year')
     plt.ylabel('PC2')
-    plt.title('$EA_{EOF}$', loc='left')
+    plt.title('$EOF2$', loc='left')
     ax2.grid(True,axis='x')
     plt.ylim([-3., 3.])
     ax3 = fig.add_subplot(gs[2,0])
@@ -450,7 +464,7 @@ for f in hcanom_3m.forecastMonth:
     plt.axhline(0, color='k')
     plt.xlabel('Year')
     plt.ylabel('PC3')
-    plt.title('$EAWR_{EOF}$', loc='left')
+    plt.title('$EOF3$', loc='left')
     ax3.grid(True,axis='x')
     plt.ylim([-3., 3.])
     ax4 = fig.add_subplot(gs[3,0])
@@ -461,11 +475,11 @@ for f in hcanom_3m.forecastMonth:
     plt.axhline(0, color='k')
     plt.xlabel('Year')
     plt.ylabel('PC4')
-    plt.title('$SCA_{EOF}$', loc='left')
+    plt.title('$EOF4$', loc='left')
     ax4.grid(True,axis='x')
     plt.ylim([-3., 3.])
     plt.subplots_adjust(left=0.1, right=0.9, top=0.95, bottom=0.05, hspace=0.25, wspace=0.1)
-    fig.savefig(f'./plots/ERA5_PCs_{tit_line}.png')
+    fig.savefig(f'{PLOTSDIR_EOFpcs}/ERA5_PCs_{tit_line}.png')
 
     plt.figure(figsize=(8, 4))
     eof_num = range(1, 16)
@@ -478,7 +492,7 @@ for f in hcanom_3m.forecastMonth:
     plt.ylabel('Variance Fraction')
     plt.xlim(1, 15)
     plt.ylim([0, 0.6])
-    plt.savefig(f'./plots/ERA5_VAR_{tit_line}.png')
+    plt.savefig(f'{PLOTSDIR_EOFvariance}/ERA5_VAR_{tit_line}.png')
     variance = pd.DataFrame({'EOF': range(1,5), 'VAR':explained_var[0:4]})
     variance.to_csv(f'{MODESDIR}/ERA5_VAR_{tit_line}.csv')
 
@@ -486,7 +500,7 @@ for f in hcanom_3m.forecastMonth:
 # ## 2.5  Hindcast PCs
 
 # We project the seasonal forecast data into the four main ERA5 EOFs, 
-# obtaining the main climate variability modes: NAO, EA, EA/WR and SCA.
+# obtaining the main climate variability modes.
 
 #%%
 print("2.5 Hindcast PCs")  
@@ -574,7 +588,7 @@ for t in obanom_3m.valid_time:
     list1_obpcs.append(pcs.assign_coords({'valid_time':t}))
 obpcs_3m = xr.concat(list1_obpcs,dim='valid_time')                   
 
-# Saving NAO index to netCDF files
+# Saving pcs to netCDF files
 hcpcs.to_netcdf(f'{MODESDIR}/{hcst_bname}.1m.PCs.nc')
 hcpcs_3m.to_netcdf(f'{MODESDIR}/{hcst_bname}.3m.PCs.nc')
 obpcs.to_netcdf(f'{MODESDIR}/{obs_bname}.1m.PCs.nc')

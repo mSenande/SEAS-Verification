@@ -149,7 +149,7 @@ if not os.path.exists(hcst_fname):
             'month': '{:02d}'.format(config['start_month']),
             'leadtime_month': ['1', '2', '3','4', '5', '6'],
             'grid': '1/1',
-            'area': [50, -30, 25, 5],
+            'area': [55, -35, 10, 55], #[50, -30, 25, 5],
         },
         hcst_fname)
 
@@ -164,10 +164,6 @@ print("1.3 Retrieve observational data (ERA5)")
 # File name for observations
 obs_fname = '{fpath}/era5_monthly_stmonth{start_month:02d}_{hcstarty}-{hcendy}.grib'.format(fpath=DATADIR,**config)
 
-# We change the era5 variable 'total_precipitation' by 'mean_total_precipitation_rate', since precipitation is also expressed as a rate in forecast data
-list_vars_era5 = config['list_vars'].copy()
-list_vars_era5 = [var.replace('total_precipitation', 'mean_total_precipitation_rate') for var in list_vars_era5]
-
 # Check if file exists
 if not os.path.exists(obs_fname):
     # If it doesn't exist, download it
@@ -175,14 +171,14 @@ if not os.path.exists(obs_fname):
         'reanalysis-era5-single-levels-monthly-means',
         {
             'product_type': 'monthly_averaged_reanalysis',
-            'variable': list_vars_era5,
+            'variable': config['list_vars'],
             # NOTE from observations we need to go one year beyond so we have available all the right valid dates
             # e.g. Nov.2016 start date forecast goes up to April 2017             
             'year': ['{}'.format(yy) for yy in range(config['hcstarty'],config['hcendy']+2)],
             'month': ['{:02d}'.format((config['start_month']+leadm)%12) if config['start_month']+leadm!=12 else '12' for leadm in range(6)],
             'time': '00:00',
             'grid': '1/1',
-            'area': [50, -30, 25, 5],
+            'area': [55, -35, 10, 55], #[50, -30, 25, 5],
             'format': 'grib',
         },
         obs_fname)

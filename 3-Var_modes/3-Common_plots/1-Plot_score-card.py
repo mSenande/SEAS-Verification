@@ -95,7 +95,7 @@ VARNAMES = {
 
 # Some predefined options to plot each score
 score_options = {'bs': [np.linspace(0.,0.5,11), plt.colormaps['YlGn'], 3, 'max', 'Brier Score (BS)'],
-                 'corr': [np.linspace(-1.,1.,11), plt.colormaps['RdYlBu_r'], 1, 'both', 'Spearmans Rank Correlation (stippling where significance below 95%)'],
+                 'corr': [np.linspace(-1.,1.,11), plt.colormaps['RdYlBu_r'], 1, 'both', 'Spearmans Rank Correlation'],
                  'roc': [np.linspace(0.,1.,11), plt.colormaps['BrBG'], 3, 'both', 'Area under Relative Operating Characteristic (ROC) curve'],
                  'rocss': [np.linspace(-0.5,0.5,9), plt.colormaps['BrBG'], 3, 'both', 'Relative Operating Characteristic Skill Score (ROCSS)'],
                  'rps': [np.linspace(0.3,0.5,11), plt.colormaps['YlGn_r'], 1, 'max', 'Ranked Probability Score (RPS)'],
@@ -143,7 +143,7 @@ for label in full_name:
         # Read files
         if fcmonth>6:
             fname1 = '{datadir}/1-Box_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
-            fname2 = '{datadir}/2-EOFs_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
+            fname2 = '{datadir}/2b-EOFs_calc/daily_data_extension/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_daily.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
             try:
                 score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
                 score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
@@ -152,7 +152,7 @@ for label in full_name:
                 continue
         else:
             fname1 = '{datadir}/1-Box_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
-            fname2 = '{datadir}/2-EOFs_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
+            fname2 = '{datadir}/2b-EOFs_calc/data/scores/{origin}_s{system}_stmonth{start_month:02d}_hindcast{hcstarty}-{hcendy}_monthly.{aggr}.{score}.nc'.format(datadir=DATADIR,**config)
             score1 = xr.open_dataset(fname1).sel(forecastMonth=fcmonth)
             score2 = xr.open_dataset(fname2).sel(forecastMonth=fcmonth)
         
