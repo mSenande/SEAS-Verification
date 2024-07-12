@@ -100,7 +100,7 @@ varn.addEventListener('input',function(evento){
     const plot2 = document.querySelector("#plot2") 
     plot2.src = plotsBaseURL+folder+folder2+'plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_'+freq+'.'+imgbasename+'.'+season_valor+'.'+varn_valor+'.png'
     const plot3 = document.querySelector("#plot3") 
-    plot3.src = plotsBaseURL+'2-EOFs_calc/plots/ERA5_EOF'+eof_num+'_'+season_valor+'.png'  
+    plot3.src = plotsBaseURL+'2-EOFs_calc/plots/EOFs/correlations/ERA5_EOF'+eof_num+'_'+season_valor+'.png'  
     const plot4 = document.querySelector("#plot4") 
     plot4.src = plotsBaseURL+folder+folder2+'plots/stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_'+freq+'.'+imgbasename+'.'+season_valor+'.'+varn_valor+'.'+score_valor+'-bootstrap.png'
 })

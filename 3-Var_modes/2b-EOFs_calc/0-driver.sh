@@ -46,9 +46,9 @@ do
     # wait
     for m in {1..12}
     do
-        python -u 4-Verification_plots.py "$institution" "$name" $m "3m" 4
-        python -u 4-Verification_plots.py "$institution" "$name" $m "3m" 5
-        python -u 4-Verification_plots.py "$institution" "$name" $m "3m" 6
+        python -u 5-Bootstrap.py "$institution" "$name" $m "3m" 4
+        python -u 5-Bootstrap.py "$institution" "$name" $m "3m" 5
+        python -u 5-Bootstrap.py "$institution" "$name" $m "3m" 6
     done
     wait
     #python -u 1-Download_data.py "$institution" "$name" $startmonth
