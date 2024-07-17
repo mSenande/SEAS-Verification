@@ -48,7 +48,7 @@ score.addEventListener('input',function(evento){
     const plot2 = document.querySelector("#plot2") 
     plot2.src = plotsBaseURL+'stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_monthly.'+imgbasename+'.'+season_valor+'.'+varn_valor+'.'+score_valor+'.png'
     const plot1 = document.querySelector("#plot1") 
-    plot1.src = plotsBaseURL+'Score-card_'+score_valor+'_'+season_valor+'_3m.png'
+    plot1.src = plotsBaseURL+'scorecards/Score-card_'+score_valor+'_'+season_valor+'_3m.png'
 })
 season.addEventListener('input',function(evento){
     season_valor = evento.target.value
@@ -80,5 +80,5 @@ season.addEventListener('input',function(evento){
     const plot2 = document.querySelector("#plot2") 
     plot2.src = plotsBaseURL+'stmonth'+str_stdate+'/'+origin_valor.split('.')[0]+'_'+origin_valor.split('.')[1]+'_stmonth'+str_stdate+'_hindcast1993-2016_monthly.'+imgbasename+'.'+season_valor+'.'+varn_valor+'.'+score_valor+'.png'
     const plot1 = document.querySelector("#plot1") 
-    plot1.src = plotsBaseURL+'Score-card_'+score_valor+'_'+season_valor+'_3m.png'
+    plot1.src = plotsBaseURL+'scorecards/Score-card_'+score_valor+'_'+season_valor+'_3m.png'
 })
