@@ -198,7 +198,8 @@ for var in thiscorr.data_vars:
     ax.set_extent(box_limits, crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.BORDERS, edgecolor='black', linewidth=0.5)
     ax.add_feature(cfeature.COASTLINE, edgecolor='black', linewidth=2.)
-    ax.gridlines(draw_labels=True)
+    gl = ax.gridlines(draw_labels=True)
+    gl.xlabels_bottom = False
 
     # Check if data values matrices need to be transposed
     corrvalues = thiscorr[var].values 
@@ -256,6 +257,8 @@ for var in thisroc.data_vars:
         ax.add_feature(cfeature.COASTLINE, edgecolor='black', linewidth=2.)
         gl = ax.gridlines(draw_labels=True)
         gl.ylabels_right = False
+        gl.xlabels_bottom = False
+
         # Check if data values matrices need to be transposed
         avalues = thisroc.sel(category=icat)[var].values
         if avalues.T.shape == (thisroc.sel(category=icat)[var].lat.size, thisroc.sel(category=icat)[var].lon.size):
@@ -303,7 +306,8 @@ for var in thisrpss.data_vars:
     ax.set_extent(box_limits, crs=ccrs.PlateCarree())
     ax.add_feature(cfeature.BORDERS, edgecolor='black', linewidth=0.5)
     ax.add_feature(cfeature.COASTLINE, edgecolor='black', linewidth=2.)
-    ax.gridlines(draw_labels=True)
+    gl = ax.gridlines(draw_labels=True)
+    gl.xlabels_bottom = False
 
     # Check if data values matrices need to be transposed
     avalues = thisrpss[var].values
